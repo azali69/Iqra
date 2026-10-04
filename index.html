@@ -165,7 +165,7 @@ async function recordToggle(btn,out,onDone){
 
 /* ---------- Voice check (Chrome speech recognition, Arabic) ---------- */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-const PAGES_URL='https://azali69.github.io/iqra/';
+const PAGES_URL='https://azali69.github.io/Iqra/';
 const norm=s=>String(s).replace(/[ً-ٰٟـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[^ء-ي ]/g,'').replace(/\s+/g,' ').trim();
 function lev(a,b){const m=a.length,n=b.length;const d=Array.from({length:m+1},(_,i)=>[i]);for(let j=1;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
 function accepts(it){
