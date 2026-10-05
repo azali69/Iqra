@@ -83,6 +83,13 @@ button:focus-visible,.tile:focus-visible,input:focus-visible{outline:3px solid v
 .codes{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;background:var(--paper);border-radius:10px;padding:10px;max-height:220px;overflow:auto;white-space:pre-wrap;word-break:break-word}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:999px;font-size:.9rem;max-width:calc(100% - 32px)}
 .note{font-size:.85rem;color:var(--muted)}
+.tile .pic{font-size:1.5rem;line-height:1.1}
+.picrow{grid-column:1/-1;display:flex;align-items:center;gap:14px;background:var(--paper);border-radius:12px;padding:8px 12px}
+.bigpic{font-size:3rem;line-height:1.1}
+.q .bigpic{font-size:4.5rem}
+.picword{font-size:1.9rem;line-height:1.4}
+.cue{font-weight:600;color:var(--muted);min-height:1.5em}
+.cue.turn{color:var(--accent);font-size:1.15rem}
 .vres{font-size:.92rem;color:var(--muted)}.vres:empty{display:none}
 .vres.ok{color:var(--accent);font-weight:600}.vres.close{color:var(--gold);font-weight:600}.vres.no{color:var(--warn)}
 .vres .ar{font-size:1.4rem;font-weight:400}
@@ -103,6 +110,10 @@ button:focus-visible,.tile:focus-visible,input:focus-visible{outline:3px solid v
 const F='َ',K='ِ',D='ُ',S='ْ',SH='ّ';
 const LET=[['ب','b','Ba'],['ت','t','Ta'],['ث','th','Tha'],['ج','j','Jim'],['ح','ḥ','Ḥa'],['خ','kh','Kha'],['د','d','Dal'],['ذ','dh','Dhal'],['ر','r','Ra'],['ز','z','Zay'],['س','s','Sin'],['ش','sh','Shin'],['ص','ṣ','Ṣad'],['ض','ḍ','Ḍad'],['ط','ṭ','Ṭa'],['ظ','ẓ','Ẓa'],['ع','ʿ','ʿAyn'],['غ','gh','Ghayn'],['ف','f','Fa'],['ق','q','Qaf'],['ك','k','Kaf'],['ل','l','Lam'],['م','m','Mim'],['ن','n','Nun'],['و','w','Waw'],['ه','h','Ha'],['ي','y','Ya']];
 const AR_NAMES=['ألف','باء','تاء','ثاء','جيم','حاء','خاء','دال','ذال','راء','زاي','سين','شين','صاد','ضاد','طاء','ظاء','عين','غين','فاء','قاف','كاف','لام','ميم','نون','واو','هاء','ياء'];
+// Picture words for each letter. Only objects (no people or animals), so the pictures suit every classroom.
+const PIC={'ا':['🍍','أَنَانَاس','pineapple'],'ب':['🚪','بَاب','door'],'ت':['🍎','تُفَّاح','apple'],'ث':['❄️','ثَلْج','snow'],'ج':['⛰️','جَبَل','mountain'],'ح':['👜','حَقِيبَة','bag'],'خ':['🍞','خُبْز','bread'],'د':['🪣','دَلْو','bucket'],'ذ':['🪙','ذَهَب','gold'],'ر':['🪶','رِيشَة','feather'],'ز':['🫒','زَيْتُون','olive'],'س':['🚢','سَفِينَة','ship'],'ش':['☀️','شَمْس','sun'],'ص':['📦','صُنْدُوق','box'],'ض':['💡','ضَوْء','light'],'ط':['✈️','طَائِرَة','aeroplane'],'ظ':['✉️','ظَرْف','envelope'],'ع':['🍇','عِنَب','grapes'],'غ':['☁️','غَيْمَة','cloud'],'ف':['☕','فِنْجَان','cup'],'ق':['🌙','قَمَر','moon'],'ك':['📖','كِتَاب','book'],'ل':['🍋','لَيْمُون','lemon'],'م':['🕌','مَسْجِد','mosque'],'ن':['🌴','نَخْلَة','palm tree'],'ه':['🎁','هَدِيَّة','gift'],'و':['🌹','وَرْدَة','rose'],'ي':['✋','يَد','hand']};
+const WORD_PIC={'كُتُبُ':'📚','نُورُ':'💡','كِتَابٌ':'📖','قَلَمٍ':'✏️','بَابًا':'🚪','الْقَمَرُ':'🌙','الْكِتَابُ':'📖','الْأَرْضُ':'🌍','الشَّمْسُ':'☀️','السَّمَاءُ':'🌌'};
+const picOf=it=>it.bare?(PIC[it.ar]||null):(WORD_PIC[it.ar]?[WORD_PIC[it.ar]]:null);
 const HEAVY=new Set(['خ','ص','ض','ط','ظ','غ','ق']);
 const TIP={'ا':'Alif has no sound of its own. It carries a vowel (with hamzah) or lengthens the “a” before it.','ث':'Tongue tip between the teeth, as in “think”.','ح':'From the middle of the throat; a breathy h without scraping.','خ':'Back of the tongue, raspy, as in Scottish “loch”. Heavy.','ذ':'Tongue tip between the teeth, as in “this”.','ر':'Tongue tip taps once. Heavy with fathah and dammah, light with kasrah.','ص':'A heavy s with a full mouth.','ض':'Heavy. The side of the tongue presses the upper back teeth.','ط':'A heavy t with a full mouth.','ظ':'Heavy, tongue between the teeth.','ع':'Squeezed from the middle of the throat.','غ':'Like light gargling. Heavy.','ق':'Back of the tongue against the soft palate. Heavy.','ه':'A light breath from the deepest part of the throat.','أ':'A short catch in the throat (glottal stop), then the vowel.','إ':'A short catch in the throat (glottal stop), then the vowel.'};
 function drill(mark, vowel, alifForm){
@@ -147,14 +158,14 @@ function revoke(u){if(u&&u.startsWith('blob:'))URL.revokeObjectURL(u)}
 function fallback(c){if(BUNDLED.has(c))audio[c]=bundledUrl(c);else delete audio[c]}
 function idb(){return new Promise((res,rej)=>{try{const r=indexedDB.open('iqra-audio',1);r.onupgradeneeded=()=>r.result.createObjectStore('clips');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
 async function loadClips(){BUNDLED.forEach(c=>{if(BY_CODE[c])audio[c]=bundledUrl(c)});try{const db=await idb();const tx=db.transaction('clips');const st=tx.objectStore('clips');const req=st.openCursor();await new Promise(r=>{req.onsuccess=()=>{const c=req.result;if(c){audio[c.key]=URL.createObjectURL(c.value);local.add(c.key);c.continue()}else r()};req.onerror=r});}catch(e){}}
-async function saveClip(code,blob){const db=await idb();await new Promise((res,rej)=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').put(blob,code);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});revoke(audio[code]);audio[code]=URL.createObjectURL(blob);local.add(code);for(const k in featCache)if(k.startsWith(code+'|'))delete featCache[k];delete pcmCache[code]}
-async function clearClips(){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').clear();tx.oncomplete=res;tx.onerror=res});}catch(e){}Object.values(audio).forEach(revoke);for(const k in audio)delete audio[k];for(const k in featCache)delete featCache[k];for(const k in pcmCache)delete pcmCache[k];local.clear();BUNDLED.forEach(c=>{if(BY_CODE[c])audio[c]=bundledUrl(c)})}
+async function saveClip(code,blob){const db=await idb();await new Promise((res,rej)=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').put(blob,code);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});revoke(audio[code]);audio[code]=URL.createObjectURL(blob);local.add(code);}
+async function clearClips(){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').clear();tx.oncomplete=res;tx.onerror=res});}catch(e){}Object.values(audio).forEach(revoke);for(const k in audio)delete audio[k];local.clear();BUNDLED.forEach(c=>{if(BY_CODE[c])audio[c]=bundledUrl(c)})}
 
 const player=new Audio();
 function play(code){const u=audio[code];if(!u)return false;player.onended=null;player.src=u;player.play().catch(()=>{});return true}
 const tries={}; // learner attempts, kept only until the page closes
 function compare(code){const t=tries[code];if(!t)return;if(audio[code]){player.src=audio[code];player.onended=()=>{player.onended=null;setTimeout(()=>{player.src=t;player.play().catch(()=>{})},400)};player.play().catch(()=>{})}else{player.onended=null;player.src=t;player.play().catch(()=>{})}}
-async function deleteClip(code){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').delete(code);tx.oncomplete=res;tx.onerror=res})}catch(e){}revoke(audio[code]);local.delete(code);fallback(code);for(const k in featCache)if(k.startsWith(code+'|'))delete featCache[k];delete pcmCache[code]}
+async function deleteClip(code){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').delete(code);tx.oncomplete=res;tx.onerror=res})}catch(e){}revoke(audio[code]);local.delete(code);fallback(code);}
 async function allClips(){const out=[];try{const db=await idb();const req=db.transaction('clips').objectStore('clips').openCursor();await new Promise(r=>{req.onsuccess=()=>{const c=req.result;if(c){out.push([c.key,c.value]);c.continue()}else r()};req.onerror=r})}catch(e){}return out}
 const REC_MAX=10000;let rec=null;
 function recMime(){if(!window.MediaRecorder)return null;return ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'].find(t=>{try{return MediaRecorder.isTypeSupported(t)}catch(e){return false}})||''}
@@ -170,146 +181,8 @@ async function recordToggle(btn,out,onDone){
   rec.t=setTimeout(()=>{if(mr.state==='recording')mr.stop()},REC_MAX);
 }
 
-/* ---------- Voice check (Chrome speech recognition, Arabic) ---------- */
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const PAGES_URL='https://azali69.github.io/Iqra/';
-const norm=s=>String(s).replace(/[ً-ٰٟـ]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/ة/g,'ه').replace(/[^ء-ي ]/g,'').replace(/\s+/g,' ').trim();
-function lev(a,b){const m=a.length,n=b.length;const d=Array.from({length:m+1},(_,i)=>[i]);for(let j=1;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n]}
-function accepts(it){
-  const ok=new Set();let main;
-  if(it.bare){it.say.forEach(n=>{const x=norm(n);ok.add(x);ok.add(x.replace(/ء$/,''))});main=norm(it.say[0])}
-  else if(it.syl){const b=norm(it.ar);const v=it.tr.slice(-1);(v==='a'?['','ا','ه','اء','اه','ى']:v==='i'?['','ي','يء','ىء']:['','و','وء']).forEach(x=>ok.add(b+x));main=b}
-  else{main=norm(it.ar);ok.add(main);if(/an$/.test(it.tr)&&main.endsWith('ا'))ok.add(main.slice(0,-1))}
-  return {ok,main};
-}
-function judge(it,alts){
-  const {ok,main}=accepts(it);let close=null;
-  for(const a of alts){const t=norm(a);const parts=[t,t.replace(/ /g,''),...t.split(' ')];
-    if(parts.some(p=>ok.has(p)))return {res:'ok',heard:a};
-    if(!close&&main.length>=3&&parts.some(p=>p&&lev(p,main)<=1))close=a}
-  return close?{res:'close',heard:close}:{res:'no',heard:alts[0]||''};
-}
-let curRec=null,lastEnd=0;
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-async function listen(){
-  // Chrome on Android needs the previous session fully closed and audio silent before a new one starts
-  if(curRec){try{curRec.abort()}catch(e){}curRec=null;await sleep(350)}
-  player.pause();
-  const gap=Date.now()-lastEnd;if(gap<600)await sleep(600-gap);
-  return new Promise((resolve,reject)=>{
-    let r;try{r=new SR()}catch(e){return reject('blocked')}
-    curRec=r;r.lang='ar-SA';r.maxAlternatives=5;r.interimResults=true;r.continuous=false;
-    let finals=null,interim=null,err=null,done=false;
-    const stopT=setTimeout(()=>{try{r.stop()}catch(e){}},8000);
-    r.onresult=e=>{for(let i=e.resultIndex;i<e.results.length;i++){const alts=Array.from(e.results[i]).map(x=>x.transcript).filter(Boolean);if(!alts.length)continue;if(e.results[i].isFinal)finals=(finals||[]).concat(alts);else interim=alts}};
-    r.onerror=e=>{if(e.error!=='aborted')err=e.error};
-    r.onend=()=>{if(done)return;done=true;clearTimeout(stopT);lastEnd=Date.now();if(curRec===r)curRec=null;
-      const got=finals||interim;
-      if(got&&got.length)return resolve(got);
-      reject(err==='not-allowed'||err==='service-not-allowed'||err==='audio-capture'?'blocked':err==='network'?'network':err&&err!=='no-speech'?'other':'nospeech')};
-    try{r.start()}catch(e){done=true;clearTimeout(stopT);curRec=null;reject('other')}
-  });
-}
-const VMSG={blocked:'The microphone isn’t available here. Open the app in Chrome at '+PAGES_URL+' and allow the microphone.',nospeech:'Nothing heard. Wait for the beep after tapping “Say it”, then read clearly, close to the phone.',network:'Voice check needs an internet connection.',other:'Voice check failed. Try again.'};
-/* ---------- Voice match against the teacher's own recordings (runs on the phone, no internet) ---------- */
-const featCache={};let decodeCtx=null;
-function fft(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){[re[i],re[j]]=[re[j],re[i]];[im[i],im[j]]=[im[j],im[i]]}}
-  for(let len=2;len<=n;len<<=1){const a=-2*Math.PI/len,wr=Math.cos(a),wi=Math.sin(a);for(let i=0;i<n;i+=len){let cr=1,ci=0;for(let k=0;k<len/2;k++){const p=i+k,q=p+len/2;const tr=re[q]*cr-im[q]*ci,ti=re[q]*ci+im[q]*cr;re[q]=re[p]-tr;im[q]=im[p]-ti;re[p]+=tr;im[p]+=ti;const nr=cr*wr-ci*wi;ci=cr*wi+ci*wr;cr=nr}}}}
-const SRATE=16000,FL=400,HOP=160,NFFT=512,NMEL=26,NCEP=13;
-const MEL=(()=>{const m=f=>2595*Math.log10(1+f/700),im=x=>700*(10**(x/2595)-1);const lo=m(100),hi=m(4000);const pts=[];for(let i=0;i<NMEL+2;i++)pts.push(Math.floor((NFFT+1)*im(lo+(hi-lo)*i/(NMEL+1))/SRATE));
-  return Array.from({length:NMEL},(_,k)=>{const w=new Float32Array(NFFT/2+1);for(let b=pts[k];b<pts[k+1];b++)w[b]=(b-pts[k])/Math.max(1,pts[k+1]-pts[k]);for(let b=pts[k+1];b<pts[k+2];b++)w[b]=(pts[k+2]-b)/Math.max(1,pts[k+2]-pts[k+1]);return w})})();
-const HAM=Float32Array.from({length:FL},(_,i)=>0.54-0.46*Math.cos(2*Math.PI*i/(FL-1)));
-async function toMono16k(blob){
-  decodeCtx=decodeCtx||new (window.AudioContext||window.webkitAudioContext)();
-  const buf=await decodeCtx.decodeAudioData(await blob.arrayBuffer());
-  const off=new OfflineAudioContext(1,Math.max(1,Math.ceil(buf.duration*SRATE)),SRATE);const src=off.createBufferSource();src.buffer=buf;src.connect(off.destination);src.start();
-  return (await off.startRendering()).getChannelData(0);
-}
-function mfcc(x,win){
-  const nF=Math.floor((x.length-FL)/HOP)+1;if(nF<5)return null;
-  const rms=new Float32Array(nF);for(let f=0;f<nF;f++){let e=0;for(let i=0;i<FL;i++){const v=x[f*HOP+i];e+=v*v}rms[f]=Math.sqrt(e/FL)}
-  let peak=0;for(const r of rms)peak=Math.max(peak,r);if(peak<0.003)return null;
-  let a=0,b=nF-1;const th=peak*0.08;while(a<nF&&rms[a]<th)a++;while(b>a&&rms[b]<th)b--;
-  a=Math.max(0,a-2);b=Math.min(nF-1,b+2);if(b-a<4)return null;
-  if(win)b=Math.min(b,a+win-1);
-  const out=[];const re=new Float32Array(NFFT),im=new Float32Array(NFFT);
-  for(let f=a;f<=b;f++){re.fill(0);im.fill(0);for(let i=0;i<FL;i++){const k=f*HOP+i;re[i]=(x[k]-0.97*(k?x[k-1]:0))*HAM[i]}fft(re,im);
-    const pw=new Float32Array(NFFT/2+1);for(let i=0;i<=NFFT/2;i++)pw[i]=re[i]*re[i]+im[i]*im[i];
-    const es=MEL.map(w=>{let e=0;for(let i=0;i<w.length;i++)if(w[i])e+=w[i]*pw[i];return e});const mx=Math.max(...es);const lm=es.map(e=>Math.log(Math.max(e,mx*1e-4)+1e-10));
-    const c=new Float32Array(NCEP-1);for(let n=1;n<NCEP;n++){let s=0;for(let k=0;k<NMEL;k++)s+=lm[k]*Math.cos(Math.PI*n*(k+.5)/NMEL);c[n-1]=s}out.push(c)}
-  const mean=new Float32Array(NCEP-1);out.forEach(c=>c.forEach((v,i)=>mean[i]+=v/out.length));out.forEach(c=>c.forEach((v,i)=>c[i]=v-mean[i]));
-  return out;
-}
-const WIN=25; // 250 ms from the start of the sound
-const winFor=it=>it.syl?WIN:0;
-async function pcmOf(blob){try{return await toMono16k(blob)}catch(e){return null}}
-async function featuresOf(blob,win){const x=await pcmOf(blob);return x?mfcc(x,win):null}
-const pcmCache={};
-// Prefer the app's cleaned recording (trimmed, levelled) as the reference; fall back to this device's recording.
-async function teacherFeat(code,win){const key=code+'|'+win;if(key in featCache)return featCache[key];
-  const u=BUNDLED.has(code)?bundledUrl(code):audio[code];if(!u)return null;
-  try{if(!pcmCache[code])pcmCache[code]=await pcmOf(await (await fetch(u)).blob());featCache[key]=pcmCache[code]?mfcc(pcmCache[code],win):null}catch(e){featCache[key]=null}
-  return featCache[key]}
-function dtw(A,B){const n=A.length,m=B.length;let prev=new Float64Array(m+1).fill(Infinity),cur=new Float64Array(m+1);prev[0]=0;
-  for(let i=1;i<=n;i++){cur.fill(Infinity);for(let j=1;j<=m;j++){let d=0;const a=A[i-1],b=B[j-1];for(let k=0;k<a.length;k++){const t=a[k]-b[k];d+=t*t}d=Math.sqrt(d);cur[j]=d+Math.min(prev[j],cur[j-1],prev[j-1])}[prev,cur]=[cur,prev]}
-  return prev[m]/(n+m)}
-async function recordUtterance(out){
-  const mime=recMime();if(mime===null||!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw 'blocked';
-  let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}})}catch(e){throw 'blocked'}
-  const ctx=new (window.AudioContext||window.webkitAudioContext)();try{await ctx.resume()}catch(e){}
-  const an=ctx.createAnalyser();an.fftSize=1024;ctx.createMediaStreamSource(stream).connect(an);const buf=new Float32Array(an.fftSize);
-  const mr=new MediaRecorder(stream,mime?{mimeType:mime}:undefined);const chunks=[];mr.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
-  player.pause();mr.start(100);
-  return new Promise(resolve=>{
-    const t0=Date.now();let floor=1,started=false,last=0;
-    const iv=setInterval(()=>{an.getFloatTimeDomainData(buf);let e=0;for(const v of buf)e+=v*v;const r=Math.sqrt(e/buf.length);const now=Date.now()-t0;
-      if(now<300){floor=Math.min(floor,Math.max(r,0.002));return}
-      if(r>Math.max(0.015,floor*4)){if(!started&&out)out.textContent='Listening… keep going.';started=true;last=now}
-      if((started&&now-last>800)||now>6000||(!started&&now>4500)){clearInterval(iv);mr.onstop=()=>{stream.getTracks().forEach(t=>t.stop());ctx.close().catch(()=>{});resolve(started?new Blob(chunks,{type:(mr.mimeType||mime||'audio/webm').split(';')[0]}):null)};mr.stop()}
-    },50);
-  });
-}
-const label=it=>it.tr+(it.en?` (${it.en})`:'');
-async function matchCheck(it,btn,out){
-  const lbl=btn.textContent;btn.disabled=true;btn.textContent='Listening…';out.className='vres';out.textContent='Read it aloud now.';
-  try{
-    const blob=await recordUtterance(out);
-    if(!blob){out.className='vres no';out.textContent='Nothing heard. Read a little louder, close to the phone.';return null}
-    if(tries[it.code])URL.revokeObjectURL(tries[it.code]);tries[it.code]=URL.createObjectURL(blob);
-    out.textContent='Checking…';
-    const win=winFor(it);const mine=await featuresOf(blob,win);if(!mine){out.className='vres no';out.textContent='Too quiet or too short. Try again a little louder.';return null}
-    // compare only with tiles in the same group of the same step (e.g. the 28 fathah syllables)
-    const pool=GROUP_OF[it.code].filter(c=>audio[c]);
-    const scores=[];for(const code of pool){const f=await teacherFeat(code,win);if(f)scores.push([code,dtw(mine,f)])}
-    scores.sort((a,b)=>a[1]-b[1]);
-    const cmp=` <button class="btn" type="button" data-cmp="${it.code}">Compare</button>`;
-    if(scores.length<3){out.className='vres';out.innerHTML='Recorded. The check needs at least 3 teacher recordings to compare against; until then, listen and compare yourself.'+cmp;bindCmp(out);return null}
-    const rank=scores.findIndex(s=>s[0]===it.code);const best=scores[0];
-    let res;
-    // lenient: a close second still counts, because a new take never matches exactly
-    if(rank===0||(rank===1&&scores[1][1]<=best[1]*1.10))res='ok';else if(rank>=0&&rank<=3&&scores[rank][1]<=best[1]*1.20)res='close';else res='no';
-    const other=BY_CODE[best[0]];
-    out.className='vres '+res;
-    out.innerHTML=(res==='ok'?'Matches the teacher’s recording.':res==='close'?'Not a clear match. Listen to the teacher, then try again.':`Sounded more like <span class="ar">${other.ar}</span> ${esc(label(other))}. Listen to the teacher and try again.`)+cmp;
-    bindCmp(out);return res;
-  }catch(c){out.className='vres no';out.textContent=VMSG[c]||VMSG.other;return null}
-  finally{btn.disabled=false;btn.textContent=lbl}
-}
 function bindCmp(out){const b=out.querySelector('[data-cmp]');if(b)b.onclick=()=>compare(b.dataset.cmp)}
-
-async function voiceCheck(it,btn,out){
-  if(audio[it.code])return matchCheck(it,btn,out);
-  if(!SR){out.className='vres no';out.textContent=VMSG.blocked;return null}
-  const label=btn.textContent;btn.disabled=true;btn.textContent='Listening…';out.className='vres';out.textContent='Read it aloud now.';
-  try{const t0=Date.now();let alts;
-    try{alts=await listen()}catch(c){if(c==='nospeech'&&Date.now()-t0<3000){out.textContent='Read it aloud now.';alts=await listen()}else throw c}
-    const j=judge(it,alts);
-    out.className='vres '+j.res;
-    out.innerHTML=(j.res==='ok'?'Recognised. ':j.res==='close'?'Close, but not the same. Compare carefully with the tile. ':'Not recognised. Try again. ')+(j.heard?`Heard: <span class="ar">${esc(j.heard)}</span>`:'');
-    return j.res}
-  catch(code){out.className='vres no';out.textContent=VMSG[code]||VMSG.other;return null}
-  finally{btn.disabled=false;btn.textContent=label}
-}
 
 /* ---------- UI helpers ---------- */
 const app=document.getElementById('app');
@@ -334,7 +207,7 @@ function home(){
   <p class="note">Record your own voice for each tile, or add files from a qualified reciter. Synthetic voices mispronounce Arabic letters, so this app plays only real recordings you add.</p>
   <label class="switch"><input type="checkbox" id="tmode" ${teacher?'checked':''}> Teacher recording mode: tap a tile, then Record to save your voice as its reference</label>
   <div class="row"><button class="btn" id="goRec">Manage recordings</button></div></div>
-  <div class="panel"><h3>Voice check</h3><p class="note">Tap “Say it” on any tile, or use “Read-aloud check” in a step. For tiles with a teacher recording, the phone compares the learner’s voice with all the teacher’s recordings and says which one it sounds most like. This works offline and needs at least 3 recordings. Tiles without a recording use Chrome’s Arabic speech recognition, which is unreliable for single letters. Neither method judges makhraj or tajwid properly, so read to a teacher as well.</p>${SR?'':`<p class="note">This browser has no speech recognition. Open <strong>${PAGES_URL}</strong> in Chrome.</p>`}</div>`;
+  <div class="panel"><h3>How to practise</h3><p class="note">Tap a tile to hear the teacher, then say it yourself. “Listen and repeat” in each step plays every item in turn and gives you time to repeat it. “Record my try” lets you hear yourself next to the teacher. There is no marking: listen, copy and repeat at your own pace, and read to a teacher when you can.</p></div>`;
   app.querySelectorAll('.lvl').forEach(b=>b.onclick=()=>lesson(+b.dataset.l));
   document.getElementById('goRec').onclick=recordings;
   document.getElementById('tmode').onchange=e=>{teacher=e.target.checked;store.set('teacher',teacher);toast(teacher?'Teacher recording mode on':'Teacher recording mode off')};
@@ -351,14 +224,14 @@ function lesson(li){
   <label class="switch"><input type="checkbox" id="trT" ${showTr?'checked':''}> Show transliteration under each tile</label>
   <div id="groups" class="${showTr?'':'hide-tr'}" style="display:flex;flex-direction:column;gap:18px">
   ${L.groups.map(g=>`<section style="display:flex;flex-direction:column;gap:10px"><div class="section-h"><h3>${esc(g.h)}</h3><span class="note">Read right to left</span></div>
-    <div class="grid ${g.words?'words':''}">${g.items.map(it=>`<button class="tile ${audio[it.code]?'has-audio':''}" data-c="${it.code}" aria-label="${esc(it.tr)}"><span class="ar">${it.ar}</span><span class="tr">${esc(it.tr)}</span><span class="code">${it.code}</span></button>`).join('')}</div></section>`).join('')}
+    <div class="grid ${g.words?'words':''}">${g.items.map(it=>`<button class="tile ${audio[it.code]?'has-audio':''}" data-c="${it.code}" aria-label="${esc(it.tr)}">${picOf(it)?`<span class="pic" aria-hidden="true">${picOf(it)[0]}</span>`:''}<span class="ar">${it.ar}</span><span class="tr">${esc(it.tr)}</span><span class="code">${it.code}</span></button>`).join('')}</div></section>`).join('')}
   </div>
-  <div class="row"><button class="btn primary" id="prac">Practice this step</button><button class="btn mic" id="voice">Read-aloud check</button><button class="btn" id="mark">${done[li]?'Marked as done':'Mark step as done'}</button>${li<LEVELS.length-1?`<button class="btn ghost" id="next">Next step →</button>`:''}</div>
+  <div class="row"><button class="btn primary" id="prac">Practice this step</button><button class="btn spk" id="voice">Listen and repeat</button><button class="btn" id="mark">${done[li]?'Marked as done':'Mark step as done'}</button>${li<LEVELS.length-1?`<button class="btn ghost" id="next">Next step →</button>`:''}</div>
   <div class="detail" id="detail" hidden></div>`;
   document.getElementById('back').onclick=home;
   document.getElementById('trT').onchange=e=>{showTr=e.target.checked;store.set('showTr',showTr);document.getElementById('groups').classList.toggle('hide-tr',!showTr)};
   document.getElementById('prac').onclick=()=>practice(li);
-  document.getElementById('voice').onclick=()=>readAloud(li);
+  document.getElementById('voice').onclick=()=>listenRepeat(li);
   document.getElementById('tmodeL').onchange=e=>{teacher=e.target.checked;store.set('teacher',teacher);const y=scrollY;const sel=app.querySelector('.tile.sel');const c=sel&&sel.dataset.c;lesson(li);scrollTo(0,y);if(c){const t=app.querySelector(`.tile[data-c="${c}"]`);if(t)t.click()}};
   document.getElementById('mark').onclick=e=>{done[li]=!done[li];store.set('done',done);e.target.textContent=done[li]?'Marked as done':'Mark step as done'};
   const nx=document.getElementById('next');if(nx)nx.onclick=()=>lesson(li+1);
@@ -379,15 +252,16 @@ function renderDetail(it,tile,tip){
   const has=!!audio[it.code];const hasTry=!!tries[it.code];
   const btns=teacher
     ?`${has?'<button class="btn" id="again">Play</button>':''}<button class="btn primary rec" id="rec">${has?'Re-record':'Record'}</button>${local.has(it.code)?'<button class="btn ghost" id="del">'+(BUNDLED.has(it.code)?'Use app recording':'Delete')+'</button>':''}`
-    :`<button class="btn spk" id="tv">Teacher’s voice</button><button class="btn primary mic" id="say">Say it</button><button class="btn rec" id="mytry">Record my try</button>${hasTry?'<button class="btn" id="cmp">'+(has?'Compare':'Play my try')+'</button>':''}`;
-  d.innerHTML=`<span class="ar">${it.ar}</span><span class="info"><strong>${esc(it.tr)}</strong>${it.name?` <span class="muted">· ${esc(it.name)}</span>`:''}${it.en?`<br><span class="muted">${esc(it.en)}</span>`:''}${tip?`<br><span class="note">${esc(tip)}</span>`:''}</span><span class="row">${btns}</span><p class="vres" id="vres" style="grid-column:1/-1" aria-live="polite"></p>`;
+    :`<button class="btn primary spk" id="tv">Teacher’s voice</button><button class="btn rec" id="mytry">Record my try</button>${hasTry?'<button class="btn" id="cmp">'+(has?'Compare':'Play my try')+'</button>':''}`;
+  const pic=picOf(it);
+  const picHtml=pic?`<div class="picrow"><span class="bigpic" aria-hidden="true">${pic[0]}</span>${pic[1]?`<span><span class="ar picword">${pic[1]}</span><br><span class="muted">${esc(pic[2])}</span></span>`:''}</div>`:'';
+  d.innerHTML=`<span class="ar">${it.ar}</span><span class="info"><strong>${esc(it.tr)}</strong>${it.name?` <span class="muted">· ${esc(it.name)}</span>`:''}${it.en?`<br><span class="muted">${esc(it.en)}</span>`:''}${tip?`<br><span class="note">${esc(tip)}</span>`:''}</span>${picHtml}<span class="row">${btns}</span><p class="vres" id="vres" style="grid-column:1/-1" aria-live="polite"></p>`;
   const out=document.getElementById('vres');const $=id=>document.getElementById(id);
   if($('again'))$('again').onclick=()=>play(it.code);
   if($('tv'))$('tv').onclick=()=>{if(!play(it.code)){out.className='vres';out.textContent='No teacher recording for this tile yet. Turn on Teacher recording mode at the top of the step to record it.'}};
-  if($('say'))$('say').onclick=()=>voiceCheck(it,$('say'),out);
   if($('cmp'))$('cmp').onclick=()=>compare(it.code);
   if($('rec'))$('rec').onclick=()=>recordToggle($('rec'),out,async blob=>{try{await saveClip(it.code,blob);tile.classList.add('has-audio');renderDetail(it,tile,tip);const o=document.getElementById('vres');o.className='vres ok';o.textContent='Saved as the reference for '+it.code+'. Tap Play to check it.';play(it.code)}catch(e){out.className='vres no';out.textContent='Could not save the recording on this device.'}});
-  if($('mytry'))$('mytry').onclick=()=>recordToggle($('mytry'),out,blob=>{if(tries[it.code])URL.revokeObjectURL(tries[it.code]);tries[it.code]=URL.createObjectURL(blob);renderDetail(it,tile,tip);const o=document.getElementById('vres');o.className='vres';o.textContent=audio[it.code]?'Tap Compare to hear the teacher, then your try.':'Recorded. There is no teacher recording for this tile yet.'});
+  if($('mytry'))$('mytry').onclick=()=>recordToggle($('mytry'),out,blob=>{if(tries[it.code])URL.revokeObjectURL(tries[it.code]);tries[it.code]=URL.createObjectURL(blob);renderDetail(it,tile,tip);const o=document.getElementById('vres');o.className='vres';o.textContent=audio[it.code]?'Tap Compare to hear the teacher, then yourself. Keep practising; every try helps.':'Recorded. Tap Play my try to listen.'});
   if($('del')){let armed=false;const lab=$('del').textContent;$('del').onclick=async()=>{if(!armed){armed=true;$('del').textContent='Tap again to confirm';setTimeout(()=>{armed=false;const x=$('del');if(x)x.textContent=lab},3000);return}await deleteClip(it.code);if(!audio[it.code])tile.classList.remove('has-audio');renderDetail(it,tile,tip);toast(audio[it.code]?'Now using the app’s recording':'Recording deleted')}}
 }
 
@@ -428,25 +302,36 @@ function practice(li){
   ask();
 }
 
-function readAloud(li){
-  const qs=shuffle(LEVELS[li].all).slice(0,10);let k=0,score=0;
-  function ask(){
-    if(k>=qs.length){app.innerHTML=`<div class="q"><p class="eyebrow">Step ${li+1} read-aloud check</p><div class="score">${score}/${qs.length}</div><p class="muted">Matched by the voice check. This is a rough check of the letter or word, not makhraj or tajwid, so read to a teacher as well.</p><div class="row" style="justify-content:center"><button class="btn primary" id="again">Try again</button><button class="btn" id="bk">Back to step</button></div></div>`;document.getElementById('again').onclick=()=>readAloud(li);document.getElementById('bk').onclick=()=>lesson(li);return}
-    const it=qs[k];let counted=false;
+function listenRepeat(li){
+  const items=LEVELS[li].all.filter(i=>audio[i.code]);let k=0,paused=false,timer=null;
+  if(!items.length){toast('This step has no teacher recordings yet');return}
+  const stop=()=>{clearTimeout(timer);player.onended=null;player.pause()};
+  function show(){
+    stop();if(k>=items.length){app.innerHTML=`<div class="q"><p class="eyebrow">Step ${li+1}</p><h2>Well done!</h2><p class="muted">You listened and repeated all ${items.length} items. Go through it again any time; repetition is how reading becomes easy.</p><div class="row" style="justify-content:center"><button class="btn primary" id="again">Start again</button><button class="btn" id="bk">Back to step</button></div></div>`;document.getElementById('again').onclick=()=>listenRepeat(li);document.getElementById('bk').onclick=()=>lesson(li);return}
+    const it=items[k];const pic=picOf(it);seen[it.code]=true;store.set('seen',seen);
     app.innerHTML=`<div class="row"><button class="btn ghost" id="quit">← Back to step ${li+1}</button></div>
-    <div class="top"><h2>Read aloud</h2><span class="note">${k+1} of ${qs.length} · ${score} recognised</span></div>
-    <div class="q"><p class="muted">${it.bare?'Say the name of this letter.':'Read this aloud.'}${audio[it.code]?' Tap “Teacher’s voice” to hear it first.':''}</p><div class="ar big">${it.ar}</div>
-    <p class="note" id="ans" hidden>${esc(it.tr)}${it.en?` · ${esc(it.en)}`:''}</p>
-    <div class="row" style="justify-content:center"><button class="btn primary mic" id="say">Say it</button>${audio[it.code]?'<button class="btn spk" id="hear">Teacher’s voice</button>':''}<button class="btn ghost" id="show">Show answer</button><button class="btn" id="next">Next →</button></div>
-    <p class="vres" id="vres" aria-live="polite"></p></div>`;
-    document.getElementById('quit').onclick=()=>lesson(li);
-    const h=document.getElementById('hear');if(h)h.onclick=()=>play(it.code);
-    document.getElementById('show').onclick=()=>{document.getElementById('ans').hidden=false};
-    document.getElementById('next').onclick=()=>{k++;ask()};
-    const sy=document.getElementById('say');
-    sy.onclick=async()=>{const r=await voiceCheck(it,sy,document.getElementById('vres'));if(r==='ok'&&!counted){counted=true;score++;seen[it.code]=true;store.set('seen',seen)}};
+    <div class="top"><h2>Listen and repeat</h2><span class="note">${k+1} of ${items.length}</span></div>
+    <div class="bar" style="margin-top:0"><i style="width:${Math.round(100*k/items.length)}%"></i></div>
+    <div class="q">${pic?`<div class="bigpic" aria-hidden="true">${pic[0]}</div>`:''}<div class="ar big">${it.ar}</div>
+    <p><strong>${esc(it.tr)}</strong>${it.en?` <span class="muted">· ${esc(it.en)}</span>`:''}</p>
+    <p class="cue" id="cue" aria-live="polite">Listen…</p>
+    <div class="row" style="justify-content:center"><button class="btn" id="prev">← Back</button><button class="btn spk" id="rep">Hear again</button><button class="btn" id="pz">${paused?'Resume':'Pause'}</button><button class="btn primary" id="nx">Next →</button></div></div>`;
+    const $=id=>document.getElementById(id);
+    $('quit').onclick=()=>{stop();lesson(li)};
+    $('prev').onclick=()=>{k=Math.max(0,k-1);show()};
+    $('nx').onclick=()=>{k++;show()};
+    $('rep').onclick=()=>run(true);
+    $('pz').onclick=()=>{paused=!paused;$('pz').textContent=paused?'Resume':'Pause';if(paused){stop();$('cue').textContent='Paused'}else run(false)};
+    function run(once){
+      stop();$('cue').textContent='Listen…';$('cue').className='cue';
+      if(!play(it.code))return;
+      player.onended=()=>{player.onended=null;const gap=Math.max(1800,(player.duration||1)*1000+1200);
+        $('cue').textContent='Your turn: say it aloud';$('cue').className='cue turn';
+        if(!once&&!paused)timer=setTimeout(()=>{k++;show()},gap)};
+    }
+    if(!paused)run(false);
   }
-  ask();
+  show();
 }
 
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
