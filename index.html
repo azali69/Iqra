@@ -144,7 +144,23 @@ LEVELS.forEach((L,i)=>L.id=i+1);
   const tw=(mark,end,alif)=>LETTERS.map((L,i)=>({ar:(i?L[0]:alif)+mark,tr:L[1]+end,name:L[2]}));
   const TAN={id:11,t:'Tanwin on each letter',s:'بً بٍ بٌ',mark:'بً بٍ بٌ',rule:['Two fathah marks (ً) read “an”, two kasrah marks (ٍ) read “in”, two dammah marks (ٌ) read “un”.','In these drills the tanwin is written on the letter alone. In real words, fathatan is usually followed by an alif (ـًا), as you will see in the next step.'],
     groups:[{h:'Fathatan (an)',items:tw('ً','an','أ')},{h:'Kasratan (in)',items:tw('ٍ','in','إ')},{h:'Dammatan (un)',items:tw('ٌ','un','أ')}]};
-  LEVELS.splice(5,0,MIX,TAN); // shown after kasrah/dammah, before tanwin words
+  // combined practice: harakat + tanwin, separate and joined (voice = the teacher's own syllable recordings in sequence)
+  const tan=(i,v)=>{const c=LETTERS[i][0],t=LETTERS[i][1];
+    if(v==='a')return {ar:(i?c:'أ')+'ً',tr:t+'an',code:'11-'+pad(i+1)};
+    if(v==='i')return {ar:(i?c:'إ')+'ٍ',tr:t+'in',code:'11-'+pad(i+29)};
+    return {ar:(i?c:'أ')+'ٌ',tr:t+'un',code:'11-'+pad(i+57)}};
+  const six=LETTERS.map((L,i)=>chain([syl(i,'a'),syl(i,'i'),syl(i,'u'),tan(i,'a'),tan(i,'i'),tan(i,'u')]));
+  const sepMix=[];for(let r=0;r<24;r++){const parts=[];for(let k=0;k<4;k++){const i=(r*7+k*9+1)%28;const v=V[(r*2+k)%3];parts.push((k+r)%2?tan(i,v):syl(i,v))}sepMix.push(chain(parts))}
+  // joined: letters 1..27 (no alif inside a word); text is written as one word so learners see the joined shapes
+  const join=parts=>({ar:parts.map(x=>x.ar).join(''),tr:parts.map(x=>x.tr).join('-'),seq:parts.map(x=>x.code)});
+  const jShort=[],jTan=[];const seen3=new Set();
+  for(let r=0;jShort.length<24;r++){const ids=[1+(r*5+2)%27,1+(r*11+7)%27,1+(r*13+19)%27];const key=ids.join();if(seen3.has(key)||new Set(ids).size<3)continue;seen3.add(key);
+    jShort.push(join(ids.map((i,k)=>syl(i,V[(r+k)%3]))))}
+  for(let r=0;jTan.length<20;r++){const ids=[1+(r*7+4)%27,1+(r*3+15)%27,1+(r*17+9)%27];const key='t'+ids.join();if(seen3.has(key)||new Set(ids).size<3)continue;seen3.add(key);
+    jTan.push(join([syl(ids[0],V[r%3]),syl(ids[1],V[(r+1)%3]),tan(ids[2],r%2?'i':'u')]))}
+  const COMBO={id:12,t:'Combined practice',s:'بَتِجٌ',mark:'بَ بً',rule:['Every row mixes the short vowels (fathah, kasrah, dammah) with tanwin (an, in, un). Read right to left and look at the mark on each letter before you say it.','In the joined rows the letters are written together as one word, so their shapes change. Read them one syllable at a time; tanwin only comes at the end of a word.'],
+    groups:[{h:'One letter, six sounds',words:true,items:six},{h:'Harakat and tanwin, separate',words:true,items:sepMix},{h:'Joined letters, short vowels',words:true,items:jShort},{h:'Joined letters ending in tanwin',words:true,items:jTan}]};
+  LEVELS.splice(5,0,MIX,TAN,COMBO); // shown after kasrah/dammah, before tanwin words
 }
 LEVELS.forEach((L,li)=>{let n=0;L.groups.forEach(g=>g.items.forEach(it=>{n++;it.code=L.id+'-'+String(n).padStart(2,'0');it.lvl=li;}));L.all=L.groups.flatMap(g=>g.items);});
 const ALL=LEVELS.flatMap(L=>L.all);
