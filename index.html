@@ -83,11 +83,6 @@ button:focus-visible,.tile:focus-visible,input:focus-visible{outline:3px solid v
 .codes{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;background:var(--paper);border-radius:10px;padding:10px;max-height:220px;overflow:auto;white-space:pre-wrap;word-break:break-word}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:999px;font-size:.9rem;max-width:calc(100% - 32px)}
 .note{font-size:.85rem;color:var(--muted)}
-.tile .pic{font-size:1.5rem;line-height:1.1}
-.picrow{grid-column:1/-1;display:flex;align-items:center;gap:14px;background:var(--paper);border-radius:12px;padding:8px 12px}
-.bigpic{font-size:3rem;line-height:1.1}
-.q .bigpic{font-size:4.5rem}
-.picword{font-size:1.9rem;line-height:1.4}
 .cue{font-weight:600;color:var(--muted);min-height:1.5em}
 .cue.turn{color:var(--accent);font-size:1.15rem}
 .vres{font-size:.92rem;color:var(--muted)}.vres:empty{display:none}
@@ -110,10 +105,6 @@ button:focus-visible,.tile:focus-visible,input:focus-visible{outline:3px solid v
 const F='َ',K='ِ',D='ُ',S='ْ',SH='ّ';
 const LET=[['ب','b','Ba'],['ت','t','Ta'],['ث','th','Tha'],['ج','j','Jim'],['ح','ḥ','Ḥa'],['خ','kh','Kha'],['د','d','Dal'],['ذ','dh','Dhal'],['ر','r','Ra'],['ز','z','Zay'],['س','s','Sin'],['ش','sh','Shin'],['ص','ṣ','Ṣad'],['ض','ḍ','Ḍad'],['ط','ṭ','Ṭa'],['ظ','ẓ','Ẓa'],['ع','ʿ','ʿAyn'],['غ','gh','Ghayn'],['ف','f','Fa'],['ق','q','Qaf'],['ك','k','Kaf'],['ل','l','Lam'],['م','m','Mim'],['ن','n','Nun'],['و','w','Waw'],['ه','h','Ha'],['ي','y','Ya']];
 const AR_NAMES=['ألف','باء','تاء','ثاء','جيم','حاء','خاء','دال','ذال','راء','زاي','سين','شين','صاد','ضاد','طاء','ظاء','عين','غين','فاء','قاف','كاف','لام','ميم','نون','واو','هاء','ياء'];
-// Picture words for each letter. Only objects (no people or animals), so the pictures suit every classroom.
-const PIC={'ا':['🍍','أَنَانَاس','pineapple'],'ب':['🚪','بَاب','door'],'ت':['🍎','تُفَّاح','apple'],'ث':['❄️','ثَلْج','snow'],'ج':['⛰️','جَبَل','mountain'],'ح':['👜','حَقِيبَة','bag'],'خ':['🍞','خُبْز','bread'],'د':['🪣','دَلْو','bucket'],'ذ':['🪙','ذَهَب','gold'],'ر':['🪶','رِيشَة','feather'],'ز':['🫒','زَيْتُون','olive'],'س':['🚢','سَفِينَة','ship'],'ش':['☀️','شَمْس','sun'],'ص':['📦','صُنْدُوق','box'],'ض':['💡','ضَوْء','light'],'ط':['✈️','طَائِرَة','aeroplane'],'ظ':['✉️','ظَرْف','envelope'],'ع':['🍇','عِنَب','grapes'],'غ':['☁️','غَيْمَة','cloud'],'ف':['☕','فِنْجَان','cup'],'ق':['🌙','قَمَر','moon'],'ك':['📖','كِتَاب','book'],'ل':['🍋','لَيْمُون','lemon'],'م':['🕌','مَسْجِد','mosque'],'ن':['🌴','نَخْلَة','palm tree'],'ه':['🎁','هَدِيَّة','gift'],'و':['🌹','وَرْدَة','rose'],'ي':['✋','يَد','hand']};
-const WORD_PIC={'كُتُبُ':'📚','نُورُ':'💡','كِتَابٌ':'📖','قَلَمٍ':'✏️','بَابًا':'🚪','الْقَمَرُ':'🌙','الْكِتَابُ':'📖','الْأَرْضُ':'🌍','الشَّمْسُ':'☀️','السَّمَاءُ':'🌌'};
-const picOf=it=>it.bare?(PIC[it.ar]||null):(WORD_PIC[it.ar]?[WORD_PIC[it.ar]]:null);
 const HEAVY=new Set(['خ','ص','ض','ط','ظ','غ','ق']);
 const TIP={'ا':'Alif has no sound of its own. It carries a vowel (with hamzah) or lengthens the “a” before it.','ث':'Tongue tip between the teeth, as in “think”.','ح':'From the middle of the throat; a breathy h without scraping.','خ':'Back of the tongue, raspy, as in Scottish “loch”. Heavy.','ذ':'Tongue tip between the teeth, as in “this”.','ر':'Tongue tip taps once. Heavy with fathah and dammah, light with kasrah.','ص':'A heavy s with a full mouth.','ض':'Heavy. The side of the tongue presses the upper back teeth.','ط':'A heavy t with a full mouth.','ظ':'Heavy, tongue between the teeth.','ع':'Squeezed from the middle of the throat.','غ':'Like light gargling. Heavy.','ق':'Back of the tongue against the soft palate. Heavy.','ه':'A light breath from the deepest part of the throat.','أ':'A short catch in the throat (glottal stop), then the vowel.','إ':'A short catch in the throat (glottal stop), then the vowel.'};
 function drill(mark, vowel, alifForm){
@@ -134,8 +125,28 @@ const LEVELS=[
  {t:'Shaddah (doubled letter)', s:'رَبِّ', mark:'بَّ', rule:['The shaddah (ّ) doubles a letter: hold it once to close the syllable, then read it again with its vowel: rab-bi.','Nun and mim with shaddah (نّ مّ) carry ghunnah, a nasal hum held for two counts.'], groups:[{h:'Words', words:true, items:[W('رَبِّ','rabbi','my Lord'),W('إِنَّ','inna','indeed'),W('ثُمَّ','thumma','then'),W('حَقٌّ','ḥaqqun','truth'),W('كُلُّ','kullu','every'),W('عَلَّمَ','ʿallama','he taught'),W('يُسَبِّحُ','yusabbiḥu','glorifies'),W('مُحَمَّدٌ','muḥammadun','Muhammad')]}]},
  {t:'“Al-” : moon and sun letters', s:'الشَّمْسُ', rule:['Moon letters: the lam of “al” is pronounced and carries a sukun (الْقَمَرُ, al-qamaru).','Sun letters: the lam is silent and the next letter doubles with shaddah (الشَّمْسُ, ash-shamsu). The opening alif is read only when you start from that word.'], groups:[{h:'Moon letters (lam is read)', words:true, items:[W('الْقَمَرُ','al-qamaru','the moon'),W('الْكِتَابُ','al-kitābu','the book'),W('الْحَمْدُ','al-ḥamdu','the praise'),W('الْأَرْضُ','al-arḍu','the earth')]},{h:'Sun letters (lam is silent)', words:true, items:[W('الشَّمْسُ','ash-shamsu','the sun'),W('النَّاسُ','an-nāsu','mankind'),W('الرَّحِيمِ','ar-raḥīmi','the Most Merciful'),W('السَّمَاءُ','as-samāʾu','the sky'),W('الدِّينِ','ad-dīni','the Judgement')]}]}
 ];
-// stable codes: level-NN, used as recording filenames
-LEVELS.forEach((L,li)=>{let n=0;L.groups.forEach(g=>g.items.forEach(it=>{n++;it.code=(li+1)+'-'+String(n).padStart(2,'0');it.lvl=li;}));L.all=L.groups.flatMap(g=>g.items);});
+// Each step keeps a fixed id so recording file names (id-NN) never change when steps are added or reordered.
+LEVELS.forEach((L,i)=>L.id=i+1);
+{ // extra practice steps built from the existing syllable recordings
+  const pad=n=>String(n).padStart(2,'0');
+  const LETTERS=[['ا','','Alif']].concat(LET.map(([c,t,n])=>[c,t,n]));
+  const syl=(i,v)=>{const c=LETTERS[i][0],t=LETTERS[i][1];
+    if(v==='a')return {ar:(i?c:'أ')+F,tr:t+'a',code:'2-'+pad(i+1)};
+    if(v==='i')return {ar:(i?c:'إ')+K,tr:t+'i',code:'5-'+pad(i+1)};
+    return {ar:(i?c:'أ')+D,tr:t+'u',code:'5-'+pad(i+29)}};
+  const chain=parts=>({ar:parts.map(x=>x.ar).join(' '),tr:parts.map(x=>x.tr).join(' '),seq:parts.map(x=>x.code)});
+  const same=LETTERS.map((L,i)=>chain([syl(i,'a'),syl(i,'i'),syl(i,'u')]));
+  const rev=LETTERS.map((L,i)=>chain([syl(i,'u'),syl(i,'i'),syl(i,'a')]));
+  const V=['a','i','u'];const mixed=[];
+  for(let r=0;r<24;r++){const parts=[];for(let k=0;k<4;k++){const i=(r*5+k*11+3)%28;parts.push(syl(i,V[(r+k*2)%3]))}mixed.push(chain(parts))}
+  const MIX={id:10,t:'Mixed harakat practice',s:'بَ بِ بُ',mark:'بَ بِ بُ',rule:['Read each row from right to left, one syllable at a time: fathah “a”, kasrah “i”, dammah “u”.','Look at the mark on every letter before you say it. Keep every syllable short and even. The teacher’s voice reads the row syllable by syllable.'],
+    groups:[{h:'One letter, three vowels',words:true,items:same},{h:'The same, in reverse',words:true,items:rev},{h:'Mixed rows',words:true,items:mixed}]};
+  const tw=(mark,end,alif)=>LETTERS.map((L,i)=>({ar:(i?L[0]:alif)+mark,tr:L[1]+end,name:L[2]}));
+  const TAN={id:11,t:'Tanwin on each letter',s:'بً بٍ بٌ',mark:'بً بٍ بٌ',rule:['Two fathah marks (ً) read “an”, two kasrah marks (ٍ) read “in”, two dammah marks (ٌ) read “un”.','In these drills the tanwin is written on the letter alone. In real words, fathatan is usually followed by an alif (ـًا), as you will see in the next step.'],
+    groups:[{h:'Fathatan (an)',items:tw('ً','an','أ')},{h:'Kasratan (in)',items:tw('ٍ','in','إ')},{h:'Dammatan (un)',items:tw('ٌ','un','أ')}]};
+  LEVELS.splice(5,0,MIX,TAN); // shown after kasrah/dammah, before tanwin words
+}
+LEVELS.forEach((L,li)=>{let n=0;L.groups.forEach(g=>g.items.forEach(it=>{n++;it.code=L.id+'-'+String(n).padStart(2,'0');it.lvl=li;}));L.all=L.groups.flatMap(g=>g.items);});
 const ALL=LEVELS.flatMap(L=>L.all);
 const BY_CODE=Object.fromEntries(ALL.map(i=>[i.code,i]));
 const GROUP_OF={};LEVELS.forEach(L=>L.groups.forEach(g=>{const cs=g.items.map(i=>i.code);cs.forEach(c=>GROUP_OF[c]=cs)}));
@@ -162,9 +173,18 @@ async function saveClip(code,blob){const db=await idb();await new Promise((res,r
 async function clearClips(){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').clear();tx.oncomplete=res;tx.onerror=res});}catch(e){}Object.values(audio).forEach(revoke);for(const k in audio)delete audio[k];local.clear();BUNDLED.forEach(c=>{if(BY_CODE[c])audio[c]=bundledUrl(c)})}
 
 const player=new Audio();
-function play(code){const u=audio[code];if(!u)return false;player.onended=null;player.src=u;player.play().catch(()=>{});return true}
+let playToken=0;
+const hasVoice=code=>{const it=BY_CODE[code];return it&&it.seq?it.seq.every(c=>audio[c]):!!audio[code]};
+function play(code,onDone){
+  const it=BY_CODE[code];const list=it&&it.seq?it.seq:[code];
+  if(!list.every(c=>audio[c]))return false;
+  const tok=++playToken;let k=0;
+  const next=()=>{if(tok!==playToken)return;if(k>=list.length){player.onended=null;if(onDone)onDone();return}
+    player.onended=()=>{if(tok!==playToken)return;setTimeout(next,list.length>1?280:0)};player.src=audio[list[k++]];player.play().catch(()=>{})};
+  player.pause();next();return true}
+function stopAudio(){playToken++;player.onended=null;player.pause()}
 const tries={}; // learner attempts, kept only until the page closes
-function compare(code){const t=tries[code];if(!t)return;if(audio[code]){player.src=audio[code];player.onended=()=>{player.onended=null;setTimeout(()=>{player.src=t;player.play().catch(()=>{})},400)};player.play().catch(()=>{})}else{player.onended=null;player.src=t;player.play().catch(()=>{})}}
+function compare(code){const t=tries[code];if(!t)return;const mine=()=>{player.onended=null;player.src=t;player.play().catch(()=>{})};if(!play(code,()=>setTimeout(mine,400)))mine()}
 async function deleteClip(code){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').delete(code);tx.oncomplete=res;tx.onerror=res})}catch(e){}revoke(audio[code]);local.delete(code);fallback(code);}
 async function allClips(){const out=[];try{const db=await idb();const req=db.transaction('clips').objectStore('clips').openCursor();await new Promise(r=>{req.onsuccess=()=>{const c=req.result;if(c){out.push([c.key,c.value]);c.continue()}else r()};req.onerror=r})}catch(e){}return out}
 const REC_MAX=10000;let rec=null;
@@ -199,8 +219,8 @@ function home(){
   <p class="muted">${LEVELS.length} short steps from the letter names to full words. Tap a tile to see how it is read${n?' and hear it':''}. Each step ends with a short practice round.</p>
   <div class="levels">${LEVELS.map((L,i)=>`
     <button class="lvl" data-l="${i}"><span class="num">${i+1}</span>
-      <span class="meta"><span class="row" style="gap:8px"><h3>${esc(L.t)}</h3>${done[i]?'<span class="done-chip">Done</span>':''}</span>
-      <span class="note">${L.all.length} items${best[i]!=null?` · best practice ${best[i]}/10`:''}</span>
+      <span class="meta"><span class="row" style="gap:8px"><h3>${esc(L.t)}</h3>${done[L.id-1]?'<span class="done-chip">Done</span>':''}</span>
+      <span class="note">${L.all.length} items${best[L.id-1]!=null?` · best practice ${best[L.id-1]}/10`:''}</span>
       <span class="bar"><i style="width:${pct(i)}%"></i></span></span>
       <span class="ar sample">${L.s}</span></button>`).join('')}</div>
   <div class="panel"><div class="section-h"><h3>Audio recordings</h3><span class="note">${n} of ${ALL.length} tiles have a teacher recording</span></div>
@@ -224,16 +244,16 @@ function lesson(li){
   <label class="switch"><input type="checkbox" id="trT" ${showTr?'checked':''}> Show transliteration under each tile</label>
   <div id="groups" class="${showTr?'':'hide-tr'}" style="display:flex;flex-direction:column;gap:18px">
   ${L.groups.map(g=>`<section style="display:flex;flex-direction:column;gap:10px"><div class="section-h"><h3>${esc(g.h)}</h3><span class="note">Read right to left</span></div>
-    <div class="grid ${g.words?'words':''}">${g.items.map(it=>`<button class="tile ${audio[it.code]?'has-audio':''}" data-c="${it.code}" aria-label="${esc(it.tr)}">${picOf(it)?`<span class="pic" aria-hidden="true">${picOf(it)[0]}</span>`:''}<span class="ar">${it.ar}</span><span class="tr">${esc(it.tr)}</span><span class="code">${it.code}</span></button>`).join('')}</div></section>`).join('')}
+    <div class="grid ${g.words?'words':''}">${g.items.map(it=>`<button class="tile ${hasVoice(it.code)?'has-audio':''}" data-c="${it.code}" aria-label="${esc(it.tr)}"><span class="ar">${it.ar}</span><span class="tr">${esc(it.tr)}</span><span class="code">${it.code}</span></button>`).join('')}</div></section>`).join('')}
   </div>
-  <div class="row"><button class="btn primary" id="prac">Practice this step</button><button class="btn spk" id="voice">Listen and repeat</button><button class="btn" id="mark">${done[li]?'Marked as done':'Mark step as done'}</button>${li<LEVELS.length-1?`<button class="btn ghost" id="next">Next step →</button>`:''}</div>
+  <div class="row"><button class="btn primary" id="prac">Practice this step</button><button class="btn spk" id="voice">Listen and repeat</button><button class="btn" id="mark">${done[LEVELS[li].id-1]?'Marked as done':'Mark step as done'}</button>${li<LEVELS.length-1?`<button class="btn ghost" id="next">Next step →</button>`:''}</div>
   <div class="detail" id="detail" hidden></div>`;
   document.getElementById('back').onclick=home;
   document.getElementById('trT').onchange=e=>{showTr=e.target.checked;store.set('showTr',showTr);document.getElementById('groups').classList.toggle('hide-tr',!showTr)};
   document.getElementById('prac').onclick=()=>practice(li);
   document.getElementById('voice').onclick=()=>listenRepeat(li);
   document.getElementById('tmodeL').onchange=e=>{teacher=e.target.checked;store.set('teacher',teacher);const y=scrollY;const sel=app.querySelector('.tile.sel');const c=sel&&sel.dataset.c;lesson(li);scrollTo(0,y);if(c){const t=app.querySelector(`.tile[data-c="${c}"]`);if(t)t.click()}};
-  document.getElementById('mark').onclick=e=>{done[li]=!done[li];store.set('done',done);e.target.textContent=done[li]?'Marked as done':'Mark step as done'};
+  document.getElementById('mark').onclick=e=>{const d=LEVELS[li].id-1;done[d]=!done[d];store.set('done',done);e.target.textContent=done[d]?'Marked as done':'Mark step as done'};
   const nx=document.getElementById('next');if(nx)nx.onclick=()=>lesson(li+1);
   let warned=false;
   app.querySelectorAll('.tile').forEach(b=>b.onclick=()=>{
@@ -249,13 +269,12 @@ function lesson(li){
 
 function renderDetail(it,tile,tip){
   const d=document.getElementById('detail');d.hidden=false;
-  const has=!!audio[it.code];const hasTry=!!tries[it.code];
-  const btns=teacher
+  const has=hasVoice(it.code);const hasTry=!!tries[it.code];
+  const btns=teacher&&!it.seq
     ?`${has?'<button class="btn" id="again">Play</button>':''}<button class="btn primary rec" id="rec">${has?'Re-record':'Record'}</button>${local.has(it.code)?'<button class="btn ghost" id="del">'+(BUNDLED.has(it.code)?'Use app recording':'Delete')+'</button>':''}`
     :`<button class="btn primary spk" id="tv">Teacher’s voice</button><button class="btn rec" id="mytry">Record my try</button>${hasTry?'<button class="btn" id="cmp">'+(has?'Compare':'Play my try')+'</button>':''}`;
-  const pic=picOf(it);
-  const picHtml=pic?`<div class="picrow"><span class="bigpic" aria-hidden="true">${pic[0]}</span>${pic[1]?`<span><span class="ar picword">${pic[1]}</span><br><span class="muted">${esc(pic[2])}</span></span>`:''}</div>`:'';
-  d.innerHTML=`<span class="ar">${it.ar}</span><span class="info"><strong>${esc(it.tr)}</strong>${it.name?` <span class="muted">· ${esc(it.name)}</span>`:''}${it.en?`<br><span class="muted">${esc(it.en)}</span>`:''}${tip?`<br><span class="note">${esc(tip)}</span>`:''}</span>${picHtml}<span class="row">${btns}</span><p class="vres" id="vres" style="grid-column:1/-1" aria-live="polite"></p>`;
+
+  d.innerHTML=`<span class="ar">${it.ar}</span><span class="info"><strong>${esc(it.tr)}</strong>${it.name?` <span class="muted">· ${esc(it.name)}</span>`:''}${it.en?`<br><span class="muted">${esc(it.en)}</span>`:''}${tip?`<br><span class="note">${esc(tip)}</span>`:''}</span><span class="row">${btns}</span><p class="vres" id="vres" style="grid-column:1/-1" aria-live="polite"></p>`;
   const out=document.getElementById('vres');const $=id=>document.getElementById(id);
   if($('again'))$('again').onclick=()=>play(it.code);
   if($('tv'))$('tv').onclick=()=>{if(!play(it.code)){out.className='vres';out.textContent='No teacher recording for this tile yet. Turn on Teacher recording mode at the top of the step to record it.'}};
@@ -270,7 +289,7 @@ function practice(li){
   const pool=LEVELS[li].all;const qs=shuffle(pool).slice(0,10);let k=0,score=0;
   function ask(){
     if(k>=qs.length)return finish();
-    const it=qs[k];const listen=!!audio[it.code]&&Math.random()<.5;
+    const it=qs[k];const listen=hasVoice(it.code)&&Math.random()<.5;
     const others=shuffle(pool.filter(p=>p.tr!==it.tr&&p.ar!==it.ar)).slice(0,3);
     const opts=shuffle([it,...others]);
     app.innerHTML=`<div class="row"><button class="btn ghost" id="quit">← Back to step ${li+1}</button></div>
@@ -291,7 +310,7 @@ function practice(li){
     });
   }
   function finish(){
-    if(best[li]==null||score>best[li]){best[li]=score;store.set('best',best)}
+    {const d=LEVELS[li].id-1;if(best[d]==null||score>best[d]){best[d]=score;store.set('best',best)}}
     app.innerHTML=`<div class="q"><p class="eyebrow">Step ${li+1} practice</p><div class="score">${score}/${qs.length}</div>
     <p class="muted">${score>=9?'Ready for the next step.':score>=7?'Good. Review the tiles you missed, then try again.':'Spend more time on the tiles, ideally with a teacher listening.'}</p>
     <div class="row" style="justify-content:center"><button class="btn primary" id="again">Try again</button><button class="btn" id="bk">Back to step</button>${li<LEVELS.length-1?'<button class="btn ghost" id="nx">Next step →</button>':''}</div></div>`;
@@ -303,16 +322,16 @@ function practice(li){
 }
 
 function listenRepeat(li){
-  const items=LEVELS[li].all.filter(i=>audio[i.code]);let k=0,paused=false,timer=null;
+  const items=LEVELS[li].all.filter(i=>hasVoice(i.code));let k=0,paused=false,timer=null;
   if(!items.length){toast('This step has no teacher recordings yet');return}
-  const stop=()=>{clearTimeout(timer);player.onended=null;player.pause()};
+  const stop=()=>{clearTimeout(timer);stopAudio()};
   function show(){
     stop();if(k>=items.length){app.innerHTML=`<div class="q"><p class="eyebrow">Step ${li+1}</p><h2>Well done!</h2><p class="muted">You listened and repeated all ${items.length} items. Go through it again any time; repetition is how reading becomes easy.</p><div class="row" style="justify-content:center"><button class="btn primary" id="again">Start again</button><button class="btn" id="bk">Back to step</button></div></div>`;document.getElementById('again').onclick=()=>listenRepeat(li);document.getElementById('bk').onclick=()=>lesson(li);return}
-    const it=items[k];const pic=picOf(it);seen[it.code]=true;store.set('seen',seen);
+    const it=items[k];seen[it.code]=true;store.set('seen',seen);
     app.innerHTML=`<div class="row"><button class="btn ghost" id="quit">← Back to step ${li+1}</button></div>
     <div class="top"><h2>Listen and repeat</h2><span class="note">${k+1} of ${items.length}</span></div>
     <div class="bar" style="margin-top:0"><i style="width:${Math.round(100*k/items.length)}%"></i></div>
-    <div class="q">${pic?`<div class="bigpic" aria-hidden="true">${pic[0]}</div>`:''}<div class="ar big">${it.ar}</div>
+    <div class="q"><div class="ar big">${it.ar}</div>
     <p><strong>${esc(it.tr)}</strong>${it.en?` <span class="muted">· ${esc(it.en)}</span>`:''}</p>
     <p class="cue" id="cue" aria-live="polite">Listen…</p>
     <div class="row" style="justify-content:center"><button class="btn" id="prev">← Back</button><button class="btn spk" id="rep">Hear again</button><button class="btn" id="pz">${paused?'Resume':'Pause'}</button><button class="btn primary" id="nx">Next →</button></div></div>`;
@@ -324,10 +343,10 @@ function listenRepeat(li){
     $('pz').onclick=()=>{paused=!paused;$('pz').textContent=paused?'Resume':'Pause';if(paused){stop();$('cue').textContent='Paused'}else run(false)};
     function run(once){
       stop();$('cue').textContent='Listen…';$('cue').className='cue';
-      if(!play(it.code))return;
-      player.onended=()=>{player.onended=null;const gap=Math.max(1800,(player.duration||1)*1000+1200);
+      const t0=Date.now();
+      play(it.code,()=>{const gap=Math.max(1800,(Date.now()-t0)+1200);
         $('cue').textContent='Your turn: say it aloud';$('cue').className='cue turn';
-        if(!once&&!paused)timer=setTimeout(()=>{k++;show()},gap)};
+        if(!once&&!paused)timer=setTimeout(()=>{k++;show()},gap)});
     }
     if(!paused)run(false);
   }
@@ -346,7 +365,7 @@ async function exportZip(){
 }
 
 function recordings(){
-  const list=LEVELS.map((L,i)=>`Step ${i+1}: ${L.t}\n`+L.all.map(it=>`  ${it.code}  ${it.tr}${audio[it.code]?'  ✓':''}`).join('\n')).join('\n\n');
+  const list=LEVELS.map((L,i)=>`Step ${i+1}: ${L.t}\n`+L.all.map(it=>`  ${it.code}  ${it.tr}${it.seq?'  (plays syllable recordings)':audio[it.code]?'  ✓':''}`).join('\n')).join('\n\n');
   app.innerHTML=`<div class="row"><button class="btn ghost" id="back">← All steps</button></div>
   <h2>Audio recordings</h2>
   <div class="panel"><h3>How it works</h3>
