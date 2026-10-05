@@ -153,13 +153,16 @@ LEVELS.forEach((L,i)=>L.id=i+1);
   const sepMix=[];for(let r=0;r<24;r++){const parts=[];for(let k=0;k<4;k++){const i=(r*7+k*9+1)%28;const v=V[(r*2+k)%3];parts.push((k+r)%2?tan(i,v):syl(i,v))}sepMix.push(chain(parts))}
   // joined: letters 1..27 (no alif inside a word); text is written as one word so learners see the joined shapes
   const join=parts=>({ar:parts.map(x=>x.ar).join(''),tr:parts.map(x=>x.tr).join('-'),seq:parts.map(x=>x.code)});
-  const jShort=[],jTan=[];const seen3=new Set();
-  for(let r=0;jShort.length<24;r++){const ids=[1+(r*5+2)%27,1+(r*11+7)%27,1+(r*13+19)%27];const key=ids.join();if(seen3.has(key)||new Set(ids).size<3)continue;seen3.add(key);
-    jShort.push(join(ids.map((i,k)=>syl(i,V[(r+k)%3]))))}
-  for(let r=0;jTan.length<20;r++){const ids=[1+(r*7+4)%27,1+(r*3+15)%27,1+(r*17+9)%27];const key='t'+ids.join();if(seen3.has(key)||new Set(ids).size<3)continue;seen3.add(key);
-    jTan.push(join([syl(ids[0],V[r%3]),syl(ids[1],V[(r+1)%3]),tan(ids[2],r%2?'i':'u')]))}
-  const COMBO={id:12,t:'Combined practice',s:'بَتِجٌ',mark:'بَ بً',rule:['Every row mixes the short vowels (fathah, kasrah, dammah) with tanwin (an, in, un). Read right to left and look at the mark on each letter before you say it.','In the joined rows the letters are written together as one word, so their shapes change. Read them one syllable at a time; tanwin only comes at the end of a word.'],
-    groups:[{h:'One letter, six sounds',words:true,items:six},{h:'Harakat and tanwin, separate',words:true,items:sepMix},{h:'Joined letters, short vowels',words:true,items:jShort},{h:'Joined letters ending in tanwin',words:true,items:jTan}]};
+  // real words read as one joined word. Spelling: letters + short vowels only (and tanwin at the end), so each
+  // can be voiced from the teacher's syllable recordings until a whole-word recording is made.
+  const LI=Object.fromEntries(LETTERS.map((L,i)=>[L[0],i]));LI['أ']=0;LI['إ']=0;
+  const word=(ar,en)=>{const parts=[];const m=[...ar.matchAll(/(.)([ً-ِ])/g)];
+    m.forEach(([,c,h],k)=>{const i=LI[c];const v={'َ':'a','ِ':'i','ُ':'u','ً':'an','ٍ':'in','ٌ':'un'}[h];parts.push(v.length>1?tan(i,v[0]):syl(i,v))});
+    const w=join(parts);w.ar=ar;w.en=en;w.joined=true;w.tr=parts.map(x=>x.tr).join('');return w};
+  const nouns=[['حَسَنٌ','good'],['وَلَدٌ','child'],['بَلَدٌ','town, land'],['قَمَرٌ','moon'],['شَجَرٌ','trees'],['جَبَلٌ','mountain'],['مَلِكٌ','king'],['مَلَكٌ','angel'],['عَمَلٌ','deed, work'],['بَشَرٌ','human being'],['ثَمَرٌ','fruit'],['حَجَرٌ','stone'],['مَطَرٌ','rain'],['أَحَدٌ','one'],['ذَهَبٌ','gold'],['أُذُنٌ','ear'],['عُنُقٌ','neck'],['سُبُلٌ','paths'],['إِبِلٌ','camels'],['عِنَبٌ','grapes']].map(([a,e])=>word(a,e));
+  const verbs=[['سَجَدَ','he prostrated'],['رَكَعَ','he bowed'],['شَهِدَ','he witnessed'],['حَمِدَ','he praised'],['خَرَجَ','he went out'],['نَزَلَ','it came down'],['صَدَقَ','he spoke the truth'],['وَجَدَ','he found'],['حَفِظَ','he guarded, he memorised'],['رَزَقَ','he provided'],['فَرِحَ','he rejoiced'],['حَزِنَ','he grieved'],['كَرُمَ','he was noble'],['حَسُنَ','it was good'],['كَبُرَ','it was great'],['ذُكِرَ','it was mentioned']].map(([a,e])=>word(a,e));
+  const COMBO={id:12,t:'Combined practice',s:'وَلَدٌ',mark:'بَ بً',rule:['Every row mixes the short vowels (fathah, kasrah, dammah) with tanwin (an, in, un). Read right to left and look at the mark on each letter before you say it.','The last two sections are real Arabic words, with their meanings. The letters join, so their shapes change. Read each word smoothly, the way the teacher does; tanwin only comes at the end of a word.'],
+    groups:[{h:'One letter, six sounds',words:true,items:six},{h:'Harakat and tanwin, separate',words:true,items:sepMix},{h:'Words ending in tanwin',words:true,items:nouns},{h:'Verbs with short vowels',words:true,items:verbs}]};
   LEVELS.splice(5,0,MIX,TAN,COMBO); // shown after kasrah/dammah, before tanwin words
 }
 LEVELS.forEach((L,li)=>{let n=0;L.groups.forEach(g=>g.items.forEach(it=>{n++;it.code=L.id+'-'+String(n).padStart(2,'0');it.lvl=li;}));L.all=L.groups.flatMap(g=>g.items);});
@@ -190,18 +193,37 @@ async function clearClips(){try{const db=await idb();await new Promise(res=>{con
 
 const player=new Audio();
 let playToken=0,chainEls=[];const SYL_GAP=60;
-const hasVoice=code=>{const it=BY_CODE[code];return it&&it.seq?it.seq.every(c=>audio[c]):!!audio[code]};
+const hasVoice=code=>{const it=BY_CODE[code];if(audio[code])return true;return !!(it&&it.seq&&it.seq.every(c=>audio[c]))};
+let actx=null;const bufCache={};let joinSrcs=[];
+async function clipBuf(c){if(bufCache[c])return bufCache[c];actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+  const buf=await actx.decodeAudioData(await (await fetch(audio[c])).arrayBuffer());
+  // find where the voice starts and ends (ignore quiet lead-in and tail)
+  const d=buf.getChannelData(0);let pk=0;for(let i=0;i<d.length;i++)pk=Math.max(pk,Math.abs(d[i]));
+  const w=Math.round(buf.sampleRate*0.01),th=pk*0.06;let a=0,b=d.length-1;
+  const lvl=i=>{let m=0;for(let j=i;j<Math.min(d.length,i+w);j++)m=Math.max(m,Math.abs(d[j]));return m};
+  while(a<d.length&&lvl(a)<th)a+=w;while(b>a&&lvl(Math.max(0,b-w))<th)b-=w;
+  return bufCache[c]={buf,start:Math.max(0,a/buf.sampleRate-0.01),end:Math.min(buf.duration,b/buf.sampleRate+0.03)}}
+async function playJoined(list,tok,onDone){
+  try{const cl=await Promise.all(list.map(clipBuf));if(tok!==playToken)return;await actx.resume();
+    const X=0.035;let t=actx.currentTime+0.05;joinSrcs=[];
+    cl.forEach((c,k)=>{const src=actx.createBufferSource();src.buffer=c.buf;const g=actx.createGain();src.connect(g).connect(actx.destination);
+      const dur=c.end-c.start;g.gain.setValueAtTime(k?0:1,t);if(k)g.gain.linearRampToValueAtTime(1,t+X);
+      if(k<cl.length-1){g.gain.setValueAtTime(1,t+dur-X);g.gain.linearRampToValueAtTime(0,t+dur)}
+      src.start(t,c.start,dur);joinSrcs.push(src);t+=dur-(k<cl.length-1?X:0)});
+    const ms=(t-actx.currentTime)*1000+60;setTimeout(()=>{if(tok===playToken&&onDone)onDone()},ms)}
+  catch(e){if(tok===playToken&&onDone)onDone()}}
 function play(code,onDone){
-  const it=BY_CODE[code];const list=it&&it.seq?it.seq:[code];
+  const it=BY_CODE[code];const list=it&&it.seq&&!audio[code]?it.seq:[code];
   if(!list.every(c=>audio[c]))return false;
-  const tok=++playToken;let k=0;chainEls.forEach(a=>a.pause());
+  if(list.length>1&&it.joined){const tok=++playToken;player.pause();chainEls.forEach(a=>a.pause());playJoined(list,tok,onDone);return true}
+  const tok=++playToken;let k=0;chainEls.forEach(a=>a.pause());joinSrcs.forEach(s=>{try{s.stop()}catch(e){}});joinSrcs=[];
   if(list.length===1){player.onended=()=>{if(tok!==playToken)return;player.onended=null;if(onDone)onDone()};player.pause();player.src=audio[list[0]];player.play().catch(()=>{});return true}
   // a row of syllables: load every clip first so they follow each other with only a short breath between them
   player.pause();const els=list.map(c=>{const a=new Audio(audio[c]);a.preload='auto';return a});chainEls=els;
   const next=()=>{if(tok!==playToken)return;if(k>=els.length){if(onDone)onDone();return}
     const a=els[k++];a.onended=()=>{if(tok!==playToken)return;setTimeout(next,SYL_GAP)};a.play().catch(()=>{})};
   next();return true}
-function stopAudio(){playToken++;player.onended=null;player.pause();chainEls.forEach(a=>a.pause())}
+function stopAudio(){playToken++;player.onended=null;player.pause();chainEls.forEach(a=>a.pause());joinSrcs.forEach(s=>{try{s.stop()}catch(e){}});joinSrcs=[]}
 const tries={}; // learner attempts, kept only until the page closes
 function compare(code){const t=tries[code];if(!t)return;const mine=()=>{player.onended=null;player.src=t;player.play().catch(()=>{})};if(!play(code,()=>setTimeout(mine,400)))mine()}
 async function deleteClip(code){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').delete(code);tx.oncomplete=res;tx.onerror=res})}catch(e){}revoke(audio[code]);local.delete(code);fallback(code);}
@@ -289,7 +311,7 @@ function lesson(li){
 function renderDetail(it,tile,tip){
   const d=document.getElementById('detail');d.hidden=false;
   const has=hasVoice(it.code);const hasTry=!!tries[it.code];
-  const btns=teacher&&!it.seq
+  const btns=teacher&&(!it.seq||it.joined)
     ?`${has?'<button class="btn" id="again">Play</button>':''}<button class="btn primary rec" id="rec">${has?'Re-record':'Record'}</button>${local.has(it.code)?'<button class="btn ghost" id="del">'+(BUNDLED.has(it.code)?'Use app recording':'Delete')+'</button>':''}`
     :`<button class="btn primary spk" id="tv">Teacher’s voice</button><button class="btn rec" id="mytry">Record my try</button>${hasTry?'<button class="btn" id="cmp">'+(has?'Compare':'Play my try')+'</button>':''}`;
 
