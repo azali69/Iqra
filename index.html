@@ -58,6 +58,7 @@ button:focus-visible,.tile:focus-visible,input:focus-visible{outline:3px solid v
 .tile .ar{font-size:2.6rem;line-height:1.5}
 .grid.words .tile .ar{font-size:2.2rem}
 .tile .tr{font-size:.85rem;color:var(--muted);min-height:1.2em}
+.tile .en{font-size:.78rem;color:var(--accent);text-align:center;line-height:1.25}
 .tile .code{font-size:.66rem;color:var(--muted);opacity:.7;font-variant-numeric:tabular-nums}
 .tile.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
 .tile.has-audio .code::after{content:" ♪";color:var(--accent)}
@@ -285,7 +286,7 @@ function lesson(li){
   <label class="switch"><input type="checkbox" id="trT" ${showTr?'checked':''}> Show transliteration under each tile</label>
   <div id="groups" class="${showTr?'':'hide-tr'}" style="display:flex;flex-direction:column;gap:18px">
   ${L.groups.map(g=>`<section style="display:flex;flex-direction:column;gap:10px"><div class="section-h"><h3>${esc(g.h)}</h3><span class="note">Read right to left</span></div>
-    <div class="grid ${g.words?'words':''}">${g.items.map(it=>`<button class="tile ${hasVoice(it.code)?'has-audio':''}" data-c="${it.code}" aria-label="${esc(it.tr)}"><span class="ar">${it.ar}</span><span class="tr">${esc(it.tr)}</span><span class="code">${it.code}</span></button>`).join('')}</div></section>`).join('')}
+    <div class="grid ${g.words?'words':''}">${g.items.map(it=>`<button class="tile ${hasVoice(it.code)?'has-audio':''}" data-c="${it.code}" aria-label="${esc(it.tr)}"><span class="ar">${it.ar}</span><span class="tr">${esc(it.tr)}</span>${it.en?`<span class="en">${esc(it.en)}</span>`:''}<span class="code">${it.code}</span></button>`).join('')}</div></section>`).join('')}
   </div>
   <div class="row"><button class="btn primary" id="prac">Practice this step</button><button class="btn spk" id="voice">Listen and repeat</button><button class="btn" id="mark">${done[LEVELS[li].id-1]?'Marked as done':'Mark step as done'}</button>${li<LEVELS.length-1?`<button class="btn ghost" id="next">Next step →</button>`:''}</div>
   <div class="detail" id="detail" hidden></div>`;
