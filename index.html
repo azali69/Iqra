@@ -162,7 +162,7 @@ let teacher=store.get('teacher',false);
 // recordings live in IndexedDB on this device
 const audio={};  // code -> playable URL (this device's recording, else the bundled teacher recording)
 // Teacher recordings shipped with the app (audio/<code>.mp3). A recording made on this device overrides its tile.
-const BUNDLED=new Set('1-01 1-02 1-03 1-04 1-05 1-06 1-07 1-08 1-09 1-10 1-11 1-12 1-13 1-14 1-15 1-16 1-17 1-18 1-19 1-20 1-21 1-22 1-23 1-24 1-25 1-26 1-27 1-28 2-01 2-02 2-03 2-04 2-05 2-06 2-07 2-08 2-09 2-10 2-11 2-12 2-13 2-14 2-15 2-16 2-17 2-18 2-19 2-20 2-21 2-22 2-23 2-24 2-25 2-26 2-27 2-28 3-01 3-02 3-03 3-04 3-05 3-06 3-07 3-08 3-09 3-10 3-11 3-12 3-13 3-14 3-15 3-16 3-17 3-18 3-19 3-20 4-01 4-02 4-03 4-04 4-05 4-06 4-07 4-08 5-01 5-02 5-03 5-04 5-05 5-06 5-07 5-08 5-09 5-10 5-11 5-12 5-13 5-14 5-15 5-16 5-17 5-18 5-19 5-20 5-21 5-22 5-23 5-24 5-25 5-26 5-27 5-28 5-29 5-30 5-31 5-32 5-33 5-34 5-35 5-36 5-37 5-38 5-39 5-40 5-41 5-42 5-43 5-44 5-45 5-46 5-47 5-48 5-49 5-50 5-51 5-52 5-53 5-54 5-55 5-56 5-57 5-58 5-59 5-60 5-61 5-62 5-63 5-64 5-65 5-66 5-67 5-68 6-01 6-02 6-03 6-04 6-05 6-06 6-07 6-08 7-01 7-02 7-03 7-04 7-05 7-06 7-07 7-08 7-09 8-01 8-02 8-03 8-04 8-05 8-06 8-07 8-08 9-01 9-02 9-03 9-04 9-05 9-06 9-07 9-08 9-09'.split(' '));
+const BUNDLED=new Set('1-01 1-02 1-03 1-04 1-05 1-06 1-07 1-08 1-09 1-10 1-11 1-12 1-13 1-14 1-15 1-16 1-17 1-18 1-19 1-20 1-21 1-22 1-23 1-24 1-25 1-26 1-27 1-28 2-01 2-02 2-03 2-04 2-05 2-06 2-07 2-08 2-09 2-10 2-11 2-12 2-13 2-14 2-15 2-16 2-17 2-18 2-19 2-20 2-21 2-22 2-23 2-24 2-25 2-26 2-27 2-28 3-01 3-02 3-03 3-04 3-05 3-06 3-07 3-08 3-09 3-10 3-11 3-12 3-13 3-14 3-15 3-16 3-17 3-18 3-19 3-20 4-01 4-02 4-03 4-04 4-05 4-06 4-07 4-08 5-01 5-02 5-03 5-04 5-05 5-06 5-07 5-08 5-09 5-10 5-11 5-12 5-13 5-14 5-15 5-16 5-17 5-18 5-19 5-20 5-21 5-22 5-23 5-24 5-25 5-26 5-27 5-28 5-29 5-30 5-31 5-32 5-33 5-34 5-35 5-36 5-37 5-38 5-39 5-40 5-41 5-42 5-43 5-44 5-45 5-46 5-47 5-48 5-49 5-50 5-51 5-52 5-53 5-54 5-55 5-56 5-57 5-58 5-59 5-60 5-61 5-62 5-63 5-64 5-65 5-66 5-67 5-68 6-01 6-02 6-03 6-04 6-05 6-06 6-07 6-08 7-01 7-02 7-03 7-04 7-05 7-06 7-07 7-08 7-09 8-01 8-02 8-03 8-04 8-05 8-06 8-07 8-08 9-01 9-02 9-03 9-04 9-05 9-06 9-07 9-08 9-09 11-01 11-02 11-03 11-04 11-05 11-06 11-07 11-08 11-09 11-10 11-11 11-12 11-13 11-14 11-15 11-16 11-17 11-18 11-19 11-20 11-21 11-22 11-23 11-24 11-25 11-26 11-27 11-28 11-29 11-30 11-31 11-33 11-34 11-35 11-36 11-37 11-38 11-39 11-40 11-41 11-42 11-43 11-44 11-45 11-46 11-47 11-48 11-49 11-50 11-51 11-52 11-53 11-54 11-55 11-56 11-57 11-58 11-59 11-60 11-61 11-62 11-63 11-64 11-65 11-66 11-67 11-68 11-69 11-70 11-71 11-72 11-73 11-74 11-75 11-76 11-77 11-78 11-79 11-80 11-81 11-82 11-83 11-84'.split(' '));
 const local=new Set();
 const bundledUrl=c=>'audio/'+c+'.mp3';
 function revoke(u){if(u&&u.startsWith('blob:'))URL.revokeObjectURL(u)}
@@ -173,16 +173,19 @@ async function saveClip(code,blob){const db=await idb();await new Promise((res,r
 async function clearClips(){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').clear();tx.oncomplete=res;tx.onerror=res});}catch(e){}Object.values(audio).forEach(revoke);for(const k in audio)delete audio[k];local.clear();BUNDLED.forEach(c=>{if(BY_CODE[c])audio[c]=bundledUrl(c)})}
 
 const player=new Audio();
-let playToken=0;
+let playToken=0,chainEls=[];const SYL_GAP=60;
 const hasVoice=code=>{const it=BY_CODE[code];return it&&it.seq?it.seq.every(c=>audio[c]):!!audio[code]};
 function play(code,onDone){
   const it=BY_CODE[code];const list=it&&it.seq?it.seq:[code];
   if(!list.every(c=>audio[c]))return false;
-  const tok=++playToken;let k=0;
-  const next=()=>{if(tok!==playToken)return;if(k>=list.length){player.onended=null;if(onDone)onDone();return}
-    player.onended=()=>{if(tok!==playToken)return;setTimeout(next,list.length>1?280:0)};player.src=audio[list[k++]];player.play().catch(()=>{})};
-  player.pause();next();return true}
-function stopAudio(){playToken++;player.onended=null;player.pause()}
+  const tok=++playToken;let k=0;chainEls.forEach(a=>a.pause());
+  if(list.length===1){player.onended=()=>{if(tok!==playToken)return;player.onended=null;if(onDone)onDone()};player.pause();player.src=audio[list[0]];player.play().catch(()=>{});return true}
+  // a row of syllables: load every clip first so they follow each other with only a short breath between them
+  player.pause();const els=list.map(c=>{const a=new Audio(audio[c]);a.preload='auto';return a});chainEls=els;
+  const next=()=>{if(tok!==playToken)return;if(k>=els.length){if(onDone)onDone();return}
+    const a=els[k++];a.onended=()=>{if(tok!==playToken)return;setTimeout(next,SYL_GAP)};a.play().catch(()=>{})};
+  next();return true}
+function stopAudio(){playToken++;player.onended=null;player.pause();chainEls.forEach(a=>a.pause())}
 const tries={}; // learner attempts, kept only until the page closes
 function compare(code){const t=tries[code];if(!t)return;const mine=()=>{player.onended=null;player.src=t;player.play().catch(()=>{})};if(!play(code,()=>setTimeout(mine,400)))mine()}
 async function deleteClip(code){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').delete(code);tx.oncomplete=res;tx.onerror=res})}catch(e){}revoke(audio[code]);local.delete(code);fallback(code);}
