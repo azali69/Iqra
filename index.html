@@ -127,6 +127,7 @@ const LEVELS=[
 LEVELS.forEach((L,li)=>{let n=0;L.groups.forEach(g=>g.items.forEach(it=>{n++;it.code=(li+1)+'-'+String(n).padStart(2,'0');it.lvl=li;}));L.all=L.groups.flatMap(g=>g.items);});
 const ALL=LEVELS.flatMap(L=>L.all);
 const BY_CODE=Object.fromEntries(ALL.map(i=>[i.code,i]));
+const GROUP_OF={};LEVELS.forEach(L=>L.groups.forEach(g=>{const cs=g.items.map(i=>i.code);cs.forEach(c=>GROUP_OF[c]=cs)}));
 
 /* ---------- Storage ---------- */
 const store={get(k,d){try{const v=localStorage.getItem('iqra2:'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('iqra2:'+k,JSON.stringify(v))}catch(e){}}};
@@ -146,14 +147,14 @@ function revoke(u){if(u&&u.startsWith('blob:'))URL.revokeObjectURL(u)}
 function fallback(c){if(BUNDLED.has(c))audio[c]=bundledUrl(c);else delete audio[c]}
 function idb(){return new Promise((res,rej)=>{try{const r=indexedDB.open('iqra-audio',1);r.onupgradeneeded=()=>r.result.createObjectStore('clips');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}})}
 async function loadClips(){BUNDLED.forEach(c=>{if(BY_CODE[c])audio[c]=bundledUrl(c)});try{const db=await idb();const tx=db.transaction('clips');const st=tx.objectStore('clips');const req=st.openCursor();await new Promise(r=>{req.onsuccess=()=>{const c=req.result;if(c){audio[c.key]=URL.createObjectURL(c.value);local.add(c.key);c.continue()}else r()};req.onerror=r});}catch(e){}}
-async function saveClip(code,blob){const db=await idb();await new Promise((res,rej)=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').put(blob,code);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});revoke(audio[code]);audio[code]=URL.createObjectURL(blob);local.add(code);delete featCache[code]}
-async function clearClips(){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').clear();tx.oncomplete=res;tx.onerror=res});}catch(e){}Object.values(audio).forEach(revoke);for(const k in audio)delete audio[k];local.forEach(c=>delete featCache[c]);local.clear();BUNDLED.forEach(c=>{if(BY_CODE[c])audio[c]=bundledUrl(c)})}
+async function saveClip(code,blob){const db=await idb();await new Promise((res,rej)=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').put(blob,code);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});revoke(audio[code]);audio[code]=URL.createObjectURL(blob);local.add(code);for(const k in featCache)if(k.startsWith(code+'|'))delete featCache[k];delete pcmCache[code]}
+async function clearClips(){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').clear();tx.oncomplete=res;tx.onerror=res});}catch(e){}Object.values(audio).forEach(revoke);for(const k in audio)delete audio[k];for(const k in featCache)delete featCache[k];for(const k in pcmCache)delete pcmCache[k];local.clear();BUNDLED.forEach(c=>{if(BY_CODE[c])audio[c]=bundledUrl(c)})}
 
 const player=new Audio();
 function play(code){const u=audio[code];if(!u)return false;player.onended=null;player.src=u;player.play().catch(()=>{});return true}
 const tries={}; // learner attempts, kept only until the page closes
 function compare(code){const t=tries[code];if(!t)return;if(audio[code]){player.src=audio[code];player.onended=()=>{player.onended=null;setTimeout(()=>{player.src=t;player.play().catch(()=>{})},400)};player.play().catch(()=>{})}else{player.onended=null;player.src=t;player.play().catch(()=>{})}}
-async function deleteClip(code){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').delete(code);tx.oncomplete=res;tx.onerror=res})}catch(e){}revoke(audio[code]);local.delete(code);fallback(code);delete featCache[code]}
+async function deleteClip(code){try{const db=await idb();await new Promise(res=>{const tx=db.transaction('clips','readwrite');tx.objectStore('clips').delete(code);tx.oncomplete=res;tx.onerror=res})}catch(e){}revoke(audio[code]);local.delete(code);fallback(code);for(const k in featCache)if(k.startsWith(code+'|'))delete featCache[k];delete pcmCache[code]}
 async function allClips(){const out=[];try{const db=await idb();const req=db.transaction('clips').objectStore('clips').openCursor();await new Promise(r=>{req.onsuccess=()=>{const c=req.result;if(c){out.push([c.key,c.value]);c.continue()}else r()};req.onerror=r})}catch(e){}return out}
 const REC_MAX=10000;let rec=null;
 function recMime(){if(!window.MediaRecorder)return null;return ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg'].find(t=>{try{return MediaRecorder.isTypeSupported(t)}catch(e){return false}})||''}
@@ -215,7 +216,7 @@ const featCache={};let decodeCtx=null;
 function fft(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){[re[i],re[j]]=[re[j],re[i]];[im[i],im[j]]=[im[j],im[i]]}}
   for(let len=2;len<=n;len<<=1){const a=-2*Math.PI/len,wr=Math.cos(a),wi=Math.sin(a);for(let i=0;i<n;i+=len){let cr=1,ci=0;for(let k=0;k<len/2;k++){const p=i+k,q=p+len/2;const tr=re[q]*cr-im[q]*ci,ti=re[q]*ci+im[q]*cr;re[q]=re[p]-tr;im[q]=im[p]-ti;re[p]+=tr;im[p]+=ti;const nr=cr*wr-ci*wi;ci=cr*wi+ci*wr;cr=nr}}}}
 const SRATE=16000,FL=400,HOP=160,NFFT=512,NMEL=26,NCEP=13;
-const MEL=(()=>{const m=f=>2595*Math.log10(1+f/700),im=x=>700*(10**(x/2595)-1);const lo=m(80),hi=m(7600);const pts=[];for(let i=0;i<NMEL+2;i++)pts.push(Math.floor((NFFT+1)*im(lo+(hi-lo)*i/(NMEL+1))/SRATE));
+const MEL=(()=>{const m=f=>2595*Math.log10(1+f/700),im=x=>700*(10**(x/2595)-1);const lo=m(100),hi=m(4000);const pts=[];for(let i=0;i<NMEL+2;i++)pts.push(Math.floor((NFFT+1)*im(lo+(hi-lo)*i/(NMEL+1))/SRATE));
   return Array.from({length:NMEL},(_,k)=>{const w=new Float32Array(NFFT/2+1);for(let b=pts[k];b<pts[k+1];b++)w[b]=(b-pts[k])/Math.max(1,pts[k+1]-pts[k]);for(let b=pts[k+1];b<pts[k+2];b++)w[b]=(pts[k+2]-b)/Math.max(1,pts[k+2]-pts[k+1]);return w})})();
 const HAM=Float32Array.from({length:FL},(_,i)=>0.54-0.46*Math.cos(2*Math.PI*i/(FL-1)));
 async function toMono16k(blob){
@@ -224,22 +225,31 @@ async function toMono16k(blob){
   const off=new OfflineAudioContext(1,Math.max(1,Math.ceil(buf.duration*SRATE)),SRATE);const src=off.createBufferSource();src.buffer=buf;src.connect(off.destination);src.start();
   return (await off.startRendering()).getChannelData(0);
 }
-function mfcc(x){
+function mfcc(x,win){
   const nF=Math.floor((x.length-FL)/HOP)+1;if(nF<5)return null;
   const rms=new Float32Array(nF);for(let f=0;f<nF;f++){let e=0;for(let i=0;i<FL;i++){const v=x[f*HOP+i];e+=v*v}rms[f]=Math.sqrt(e/FL)}
   let peak=0;for(const r of rms)peak=Math.max(peak,r);if(peak<0.003)return null;
   let a=0,b=nF-1;const th=peak*0.08;while(a<nF&&rms[a]<th)a++;while(b>a&&rms[b]<th)b--;
   a=Math.max(0,a-2);b=Math.min(nF-1,b+2);if(b-a<4)return null;
+  if(win)b=Math.min(b,a+win-1);
   const out=[];const re=new Float32Array(NFFT),im=new Float32Array(NFFT);
   for(let f=a;f<=b;f++){re.fill(0);im.fill(0);for(let i=0;i<FL;i++){const k=f*HOP+i;re[i]=(x[k]-0.97*(k?x[k-1]:0))*HAM[i]}fft(re,im);
     const pw=new Float32Array(NFFT/2+1);for(let i=0;i<=NFFT/2;i++)pw[i]=re[i]*re[i]+im[i]*im[i];
-    const lm=MEL.map(w=>{let e=0;for(let i=0;i<w.length;i++)if(w[i])e+=w[i]*pw[i];return Math.log(e+1e-10)});
+    const es=MEL.map(w=>{let e=0;for(let i=0;i<w.length;i++)if(w[i])e+=w[i]*pw[i];return e});const mx=Math.max(...es);const lm=es.map(e=>Math.log(Math.max(e,mx*1e-4)+1e-10));
     const c=new Float32Array(NCEP-1);for(let n=1;n<NCEP;n++){let s=0;for(let k=0;k<NMEL;k++)s+=lm[k]*Math.cos(Math.PI*n*(k+.5)/NMEL);c[n-1]=s}out.push(c)}
   const mean=new Float32Array(NCEP-1);out.forEach(c=>c.forEach((v,i)=>mean[i]+=v/out.length));out.forEach(c=>c.forEach((v,i)=>c[i]=v-mean[i]));
   return out;
 }
-async function featuresOf(blob){try{return mfcc(await toMono16k(blob))}catch(e){return null}}
-async function teacherFeat(code){if(code in featCache)return featCache[code];const u=audio[code];if(!u)return null;try{featCache[code]=await featuresOf(await (await fetch(u)).blob())}catch(e){featCache[code]=null}return featCache[code]}
+const WIN=25; // 250 ms from the start of the sound
+const winFor=it=>it.syl?WIN:0;
+async function pcmOf(blob){try{return await toMono16k(blob)}catch(e){return null}}
+async function featuresOf(blob,win){const x=await pcmOf(blob);return x?mfcc(x,win):null}
+const pcmCache={};
+// Prefer the app's cleaned recording (trimmed, levelled) as the reference; fall back to this device's recording.
+async function teacherFeat(code,win){const key=code+'|'+win;if(key in featCache)return featCache[key];
+  const u=BUNDLED.has(code)?bundledUrl(code):audio[code];if(!u)return null;
+  try{if(!pcmCache[code])pcmCache[code]=await pcmOf(await (await fetch(u)).blob());featCache[key]=pcmCache[code]?mfcc(pcmCache[code],win):null}catch(e){featCache[key]=null}
+  return featCache[key]}
 function dtw(A,B){const n=A.length,m=B.length;let prev=new Float64Array(m+1).fill(Infinity),cur=new Float64Array(m+1);prev[0]=0;
   for(let i=1;i<=n;i++){cur.fill(Infinity);for(let j=1;j<=m;j++){let d=0;const a=A[i-1],b=B[j-1];for(let k=0;k<a.length;k++){const t=a[k]-b[k];d+=t*t}d=Math.sqrt(d);cur[j]=d+Math.min(prev[j],cur[j-1],prev[j-1])}[prev,cur]=[cur,prev]}
   return prev[m]/(n+m)}
@@ -267,17 +277,20 @@ async function matchCheck(it,btn,out){
     if(!blob){out.className='vres no';out.textContent='Nothing heard. Read a little louder, close to the phone.';return null}
     if(tries[it.code])URL.revokeObjectURL(tries[it.code]);tries[it.code]=URL.createObjectURL(blob);
     out.textContent='Checking…';
-    const mine=await featuresOf(blob);if(!mine){out.className='vres no';out.textContent='Too quiet or too short. Try again a little louder.';return null}
-    const scores=[];for(const code of Object.keys(audio)){const f=await teacherFeat(code);if(f)scores.push([code,dtw(mine,f)])}
+    const win=winFor(it);const mine=await featuresOf(blob,win);if(!mine){out.className='vres no';out.textContent='Too quiet or too short. Try again a little louder.';return null}
+    // compare only with tiles in the same group of the same step (e.g. the 28 fathah syllables)
+    const pool=GROUP_OF[it.code].filter(c=>audio[c]);
+    const scores=[];for(const code of pool){const f=await teacherFeat(code,win);if(f)scores.push([code,dtw(mine,f)])}
     scores.sort((a,b)=>a[1]-b[1]);
     const cmp=` <button class="btn" type="button" data-cmp="${it.code}">Compare</button>`;
     if(scores.length<3){out.className='vres';out.innerHTML='Recorded. The check needs at least 3 teacher recordings to compare against; until then, listen and compare yourself.'+cmp;bindCmp(out);return null}
     const rank=scores.findIndex(s=>s[0]===it.code);const best=scores[0];
     let res;
-    if(rank===0)res='ok';else if(rank>0&&scores[rank][1]<=best[1]*1.06)res='close';else res='no';
+    // lenient: a close second still counts, because a new take never matches exactly
+    if(rank===0||(rank===1&&scores[1][1]<=best[1]*1.10))res='ok';else if(rank>=0&&rank<=3&&scores[rank][1]<=best[1]*1.20)res='close';else res='no';
     const other=BY_CODE[best[0]];
     out.className='vres '+res;
-    out.innerHTML=(res==='ok'?'Matches the teacher’s recording.':res==='close'?`Close. It was nearly as similar to <span class="ar">${other.ar}</span> ${esc(label(other))}. Listen and try again.`:`Sounded more like <span class="ar">${other.ar}</span> ${esc(label(other))}. Listen to the teacher and try again.`)+cmp;
+    out.innerHTML=(res==='ok'?'Matches the teacher’s recording.':res==='close'?'Not a clear match. Listen to the teacher, then try again.':`Sounded more like <span class="ar">${other.ar}</span> ${esc(label(other))}. Listen to the teacher and try again.`)+cmp;
     bindCmp(out);return res;
   }catch(c){out.className='vres no';out.textContent=VMSG[c]||VMSG.other;return null}
   finally{btn.disabled=false;btn.textContent=lbl}
