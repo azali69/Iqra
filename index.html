@@ -412,9 +412,10 @@ function listenRepeat(li){
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
 async function exportZip(){
   const clips=await allClips();if(!clips.length){toast('No recordings to download yet');return}
-  try{if(!window.JSZip)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+  try{if(!window.JSZip){try{await loadScript('jszip.min.js')}catch(e){await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js')}}
     const zip=new JSZip();const ext=t=>/mp4|m4a|aac/.test(t)?'m4a':/mpeg|mp3/.test(t)?'mp3':/ogg/.test(t)?'ogg':/wav/.test(t)?'wav':'webm';
     clips.forEach(([code,blob])=>zip.file(code+'.'+ext(blob.type||''),blob));
+    if(window.AndroidApp){const b64=await zip.generateAsync({type:'base64'});const where=AndroidApp.saveFile('iqra-recordings-'+Date.now()+'.zip',b64,'application/zip');toast(where?clips.length+' recordings saved to '+where:'Could not save the zip on this phone');return}
     const z=await zip.generateAsync({type:'blob'});const a=document.createElement('a');a.href=URL.createObjectURL(z);a.download='iqra-recordings.zip';document.body.appendChild(a);a.click();a.remove();
     toast(clips.length+' recordings saved to a .zip')}
   catch(e){toast('Download isn’t available here. Use the Chrome version.')}
@@ -444,6 +445,9 @@ function recordings(){
   scrollTo(0,0);
 }
 
+// Android app: the phone's Back button goes back one screen; leaving the app stops the sound
+window.__back=()=>{const b=document.getElementById('back')||document.getElementById('quit')||document.getElementById('bk');if(b){b.click();return true}return false};
+window.__pause=()=>{try{stopAudio()}catch(e){}};
 loadClips().then(home);
 </script>
 

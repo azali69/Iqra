@@ -1,0 +1,29 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'net.azli.iqra'
+    compileSdk 34
+    defaultConfig {
+        applicationId "net.azli.iqra"
+        minSdk 24
+        targetSdk 34
+        versionCode Integer.parseInt(System.getenv("VERSION_CODE") ?: "1")
+        versionName "1.0"
+    }
+    signingConfigs {
+        personal {
+            storeFile file("../debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.personal
+        }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    androidResources { noCompress 'html', 'mp3' }
+}
+dependencies { implementation 'androidx.webkit:webkit:1.11.0' }
